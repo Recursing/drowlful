@@ -23,30 +23,28 @@
   }
 
   function initConnection(pid) {
-    const uid =
-      "drawfulPlayer_" +
-      Math.random()
-        .toString(36)
-        .replace(".", "_");
-    const peer = new Peer(uid);
+    const peer = new Peer();
+    peer.on("open", () => {
+      console.log("Peer opened, connecting to:", pid);
+      connection = peer.connect(pid);
+      connection.on("open", () => {
+        connection.on("data", data => {
+          console.log("got data:", data);
+          dispatch("onMessage", JSON.parse(data));
+        });
+        sendObject({
+          type: "new_user",
+          username: username,
+          img_src: img_src
+        });
+      });
+    });
     peer.on("error", err => console.error(err));
 
     peer.on("connection", conn => {
       console.log("CONNECTED!");
       console.log(conn);
       // connection = conn;
-    });
-    connection = peer.connect(pid);
-    connection.on("open", () => {
-      connection.on("data", data => {
-        console.log("got data:", data);
-        dispatch("onMessage", JSON.parse(data));
-      });
-      sendObject({
-        type: "new_user",
-        username: username,
-        img_src: img_src
-      });
     });
   }
 

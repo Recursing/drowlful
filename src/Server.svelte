@@ -14,13 +14,13 @@
   }
 
   function createPeer() {
-    const pid =
-      "drawful_" +
-      Math.random()
-        .toString(36)
-        .replace(".", "_");
-    peer = new Peer(pid);
-    out_url = location.href + "#" + pid;
+    peer = new Peer();
+    peer.on("open", function(id) {
+      console.log("My peer ID is: " + id);
+      out_url = location.href + "#" + peer.id;
+      alert(peer.id);
+    });
+
     peer.on("error", err => console.error(err));
 
     peer.on("connection", conn => {
