@@ -5,20 +5,11 @@
   let connections = [];
   let users = [];
 
-  function selectPre(el) {
-    let range = document.createRange();
-    range.selectNodeContents(el.target);
-    let sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
   function createPeer() {
     peer = new Peer();
     peer.on("open", function(id) {
       console.log("My peer ID is: " + id);
       out_url = location.href + "#" + peer.id;
-      alert(peer.id);
     });
 
     peer.on("error", err => console.error(err));
@@ -60,10 +51,13 @@
     return peer;
   }
 
+  let gameStarted = false;
+
   function startGame() {
     for (let conn of connections) {
       conn.send(JSON.stringify({ type: "start_game" }));
     }
+    gameStarted = true;
   }
 
   onMount(async () => {
@@ -75,9 +69,10 @@
   <title>WebRTCRelayServer</title>
 </svelte:head>
 
-<h1 class="title has-text-centered">Drawful server</h1>
+<h1 class="title has-text-centered">
+  WebRTCRelayServer server tab: send this link to players, then press the button
+</h1>
 
-<!-- <pre on:click={selectPre}>{out_url}</pre> -->
 <a href={out_url}>{out_url}</a>
 
 <p>Logged users:</p>
@@ -87,6 +82,9 @@
   {/each}
 </ul>
 
-<button class="button" on:click|once={startGame} disabled={users.length < 2}>
+<button
+  class="button"
+  on:click|once={startGame}
+  disabled={users.length < 2 || gameStarted}>
   Everybody in!
 </button>

@@ -14,14 +14,6 @@
     connection.send(JSON.stringify(obj));
   }
 
-  function selectPre(event) {
-    let range = document.createRange();
-    range.selectNodeContents(event.target);
-    let sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
   function initConnection(pid) {
     const peer = new Peer();
     peer.on("open", () => {
