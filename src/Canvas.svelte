@@ -43,6 +43,9 @@
     border-style: solid;
     display: block;
   }
+  polyline {
+    pointer-events: none;
+  }
   .controls {
     margin-left: 3em;
     width: 50%;
