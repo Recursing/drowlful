@@ -1,7 +1,8 @@
-<script>
-  export let lines = [];
+<script lang="ts">
+  import type { Line } from "./interfaces";
+  export let lines: Line[] = [];
   export let editable = true;
-  let cur_line = { stroke: "red", width: 2, points: "" };
+  let cur_line: Line = { stroke: "red", width: 2, points: "" };
   let is_drawing = false;
 
   function onMouseup() {
@@ -15,7 +16,7 @@
     lines.push({
       stroke: cur_line.stroke,
       width: cur_line.width,
-      points: cur_line.points
+      points: cur_line.points,
     });
     lines = lines;
     cur_line.points = "";
@@ -28,7 +29,7 @@
     is_drawing = true;
   }
 
-  function onMousemove(ev) {
+  function onMousemove(ev: MouseEvent) {
     if (!is_drawing) {
       return;
     }

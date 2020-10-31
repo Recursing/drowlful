@@ -1,10 +1,11 @@
-<script>
+<script lang="ts">
+  import type { Picture } from "./interfaces";
   import Avatar from "./Avatar.svelte";
   import TelegramLogin from "./TelegramLogin.svelte";
   import WebRTCConnection from "./WebRTCConnection.svelte";
   import Draw from "./Draw.svelte";
   import Guess from "./Guess.svelte";
-  import { users, my_username } from "./stores.js";
+  import { users, my_username } from "./stores";
   $: user_list = [...$users];
 
   const states = {
@@ -13,30 +14,30 @@
     WAIT_START: "wait_start",
     DRAW: "draw",
     WAIT_DRAWERS: "wait_drawers",
-    GUESS: "guess"
+    GUESS: "guess",
   };
 
   let state = states.LOGIN;
-  let img_src; // TODO maybe move to object store
+  let img_src: string; // TODO maybe move to object store
 
-  let sendObject;
-  let guessComponent;
+  let connectionComponent: WebRTCConnection | null = null;
+  let guessComponent: Guess;
 
-  let pictures = [];
+  let pictures: Picture[] = [];
 
   // Called by <TelegramLogin/>
-  function handleLogin(event) {
+  function handleLogin(event: CustomEvent) {
     state = states.CONNECT;
     let username = event.detail.username;
     img_src = event.detail.img_src;
     my_username.set(username);
     console.log("Logged in: ", event.detail);
     let tg_login = document.getElementById("telegram-login-minnybot");
-    tg_login.parentNode.removeChild(tg_login);
+    if (tg_login?.parentNode) tg_login.parentNode.removeChild(tg_login);
   }
 
   // Called by <WebRTCConnection/>
-  function onMessage(message) {
+  function onMessage(message: CustomEvent) {
     // TODO decent dispatcher in separate component
     console.log(message.detail.type);
     console.log(message);
@@ -44,9 +45,9 @@
       case "new_user":
         const new_user = {
           username: message.detail.username,
-          img_src: message.detail.img_src
+          img_src: message.detail.img_src,
         };
-        users.update(users => {
+        users.update((users) => {
           users.set(new_user.username, { score: 0, img_src: new_user.img_src });
           console.log([...users]);
           return users;
@@ -57,10 +58,10 @@
         }
         break;
       case "old_users":
-        const old_users = message.detail.users.map(u => {
+        const old_users = message.detail.users.map((u: [string, string]) => {
           return { score: 0, username: u[0], img_src: u[1] };
         });
-        users.update(users => {
+        users.update((users) => {
           for (let u of old_users) {
             users.set(u.username, { score: 0, img_src: u.img_src });
           }
@@ -76,8 +77,8 @@
           {
             username: message.detail.username,
             lines: message.detail.lines,
-            prompt: message.detail.prompt
-          }
+            prompt: message.detail.prompt,
+          },
         ];
         pictures.sort();
         console.log(pictures);
@@ -97,31 +98,31 @@
   }
 
   // called by <Draw/>
-  function sendPicture(message) {
+  function sendPicture(message: CustomEvent) {
     console.log("sendPicture message", message);
     state = states.WAIT_DRAWERS;
-    sendObject({
+    connectionComponent?.sendObject({
       type: "picture",
       lines: message.detail.lines,
-      prompt: message.detail.prompt
+      prompt: message.detail.prompt,
     });
   }
 
   // called by <Guess/>
-  function sendVote(message) {
+  function sendVote(message: CustomEvent) {
     console.log("sendVote message", message);
-    sendObject({
+    connectionComponent?.sendObject({
       type: "voted_prompt",
-      prompt: message.detail
+      prompt: message.detail,
     });
   }
 
   // called by <Guess/>
-  function sendGuess(message) {
+  function sendGuess(message: CustomEvent) {
     console.log("sendGuess message", message);
-    sendObject({
+    connectionComponent?.sendObject({
       type: "guessed_prompt",
-      prompt: message.detail
+      prompt: message.detail,
     });
   }
 </script>
@@ -139,7 +140,7 @@
   {:else if state === states.CONNECT}
     <h1 class="title has-text-centered">Hello {$my_username}! Send me this!</h1>
     <WebRTCConnection
-      bind:sendObject
+      bind:this={connectionComponent}
       username={$my_username}
       {img_src}
       on:onMessage={onMessage} />

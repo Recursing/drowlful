@@ -1,4 +1,4 @@
-[
+export const prompts = [
     "fake moon landing",
     "80% certain",
     "large hadron collider",

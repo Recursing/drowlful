@@ -1,20 +1,21 @@
-<script>
+<script lang="ts">
+  import type { Line } from "./interfaces";
   import Canvas from "./Canvas.svelte";
   import { createEventDispatcher } from "svelte";
   const dispatch = createEventDispatcher();
   import { tweened } from "svelte/motion";
   const tot_time = 101;
-  import prompts from "./prompts.json";
+  import { prompts } from "./prompts.js";
   const prompt = prompts[
     Math.floor(Math.random() * prompts.length)
   ].toUpperCase();
-  export let lines = [];
+  export let lines: Line[] = [];
   const progress = tweened(0, {
-    duration: tot_time * 1000
+    duration: tot_time * 1000,
   });
   $: sec_left = Math.floor((1 - $progress) * tot_time);
   let already_sent = false;
-  let onDone = function() {
+  let onDone = function () {
     if (already_sent) {
       return;
     }

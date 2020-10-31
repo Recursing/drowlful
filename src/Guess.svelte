@@ -1,15 +1,16 @@
-<script>
-  import { users, my_username } from "./stores.js";
+<script lang="ts">
+  import type { Picture, Guess } from "./interfaces";
+  import { users, my_username } from "./stores";
   import Avatar from "./Avatar.svelte";
   import Canvas from "./Canvas.svelte";
   import { createEventDispatcher } from "svelte";
   const dispatch = createEventDispatcher();
   import { tweened } from "svelte/motion";
-  export let pictures;
+  export let pictures: Picture[];
   const states = {
     WRITE_GUESS: "write_guess",
     PICK_GUESS: "pick_guess",
-    SCORE: "scoring"
+    SCORE: "scoring",
   };
   const tot_time = 31;
 
@@ -20,11 +21,15 @@
   let vote = "";
   let sent_vote = false;
 
-  let guesses = [];
-  let votes = [];
+  let guesses: Guess[] = [];
+  let votes: Guess[] = [];
 
   function startGuessing() {
-    picture = pictures.pop();
+    if (pictures.length == 0) {
+      alert("Oh noes! No pictures!");
+      return;
+    }
+    picture = pictures.pop()!;
     guesses = [{ prompt: picture.prompt, username: picture.username }];
     votes = [];
     state = states.WRITE_GUESS;
@@ -46,13 +51,14 @@
       .then(() => alert("Please send a vote!"));
   }
 
-  let sendGuess = function() {
+  let sendGuess = function () {
     dispatch("sendGuess", guess.toUpperCase());
     sent_guess = true;
     progress.set(1);
   };
 
-  export const onGuess = guess => {
+  export const onGuess = (guess: Guess) => {
+    // TODO guess shadows global
     console.log(guess);
     guesses = [...guesses, guess];
     console.log(guesses);
@@ -61,13 +67,13 @@
     }
   };
 
-  let sendVote = function() {
+  let sendVote = function () {
     dispatch("sendVote", vote);
     sent_vote = true;
     progress.set(1);
   };
 
-  export const onVote = vote => {
+  export const onVote = (vote: Guess) => {
     console.log(vote);
     votes = [...votes, vote];
     console.log(votes);
@@ -78,7 +84,7 @@
   };
 
   const progress = tweened(0, {
-    duration: tot_time * 1000
+    duration: tot_time * 1000,
   });
 
   $: sec_left = Math.floor((1 - $progress) * tot_time);

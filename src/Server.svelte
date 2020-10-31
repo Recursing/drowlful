@@ -1,29 +1,30 @@
-<script>
+<script lang="ts">
+  import Peer from "peerjs";
   import { onMount } from "svelte";
   let out_url = "";
-  let peer;
-  let connections = [];
-  let users = [];
+  let peer: Peer;
+  let connections: Peer.DataConnection[] = [];
+  let users: [string, string][] = [];
 
   function createPeer() {
     peer = new Peer();
-    peer.on("open", function(id) {
+    peer.on("open", function (id) {
       console.log("My peer ID is: " + id);
       out_url = location.href + "#" + peer.id;
     });
 
-    peer.on("error", err => console.error(err));
+    peer.on("error", (err) => console.error(err));
 
-    peer.on("connection", conn => {
+    peer.on("connection", (conn) => {
       console.log("CONNECTED! with connection:");
       console.log(conn);
       connections.push(conn);
       console.log(users);
-      conn.on("data", data => {
+      conn.on("data", (data) => {
         conn.send(
           JSON.stringify({
             type: "old_users",
-            users: users
+            users: users,
           })
         );
         console.log("got data:", data);

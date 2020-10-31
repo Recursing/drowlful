@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import User from "./User.svelte";
   import Server from "./Server.svelte";
 </script>
