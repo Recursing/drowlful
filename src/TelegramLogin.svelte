@@ -4,7 +4,6 @@
   const dispatch = createEventDispatcher();
 
   let username = "";
-  let img_src = "";
 
   interface User {
     username?: string;
@@ -22,9 +21,11 @@
     "https://avatars2.githubusercontent.com/u/1506147",
   ];
 
+  let img_src = default_images[Math.floor(Math.random() * 5)];
+
   function onTelegramAuth(user: User) {
     username = user.username || user.first_name + " " + user.last_name;
-    img_src = user.photo_url || default_images[Math.floor(Math.random() * 5)];
+    img_src = user.photo_url || img_src;
     console.log(
       "Logged in as " +
         user.first_name +
@@ -78,7 +79,7 @@
         bind:value={img_src}
         class="input"
         type="url"
-        placeholder="image url" />
+        required />
     </div>
   </div>
   <div class="field column is-narrow">
