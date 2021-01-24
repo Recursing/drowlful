@@ -1,11 +1,4 @@
 import type { WebSocketMessage } from "./interfaces";
-
-interface WebSocketPayload {
-    type: string;
-    prompt?: string;
-    lines?: unknown;
-}
-
 export class WebSocketConnection {
     onMessage: (message: WebSocketMessage) => void;
     websocket: WebSocket | null;
@@ -23,7 +16,7 @@ export class WebSocketConnection {
         }
     }
 
-    sendObject(object: WebSocketPayload) {
+    sendObject(object: WebSocketMessage) {
         if (this.websocket === null){
             console.error("Can't send without websocket");
             return;

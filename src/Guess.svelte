@@ -19,6 +19,7 @@
   let guess = "";
   let sent_guess = false;
   let vote = "";
+  let give_point_to = "";
   let sent_vote = false;
 
   let guesses: Guess[] = [];
@@ -38,30 +39,30 @@
     progress
       .set(0, { duration: 500 })
       .then(() => progress.set(1))
-      .then(() => alert("Please send a guess!"));
+      .then(() => {if (!sent_guess) {alert("Please send a guess!")}});
   }
 
   function startVoting() {
-    sent_vote = $my_username === picture.username;
     state = states.PICK_GUESS;
     vote = "";
+    if ($my_username === picture.username){
+      vote = picture.prompt;
+      sendVote();
+    }
     progress
       .set(0, { duration: 500 })
       .then(() => progress.set(1))
-      .then(() => alert("Please send a vote!"));
+      .then(() => {if (!sent_vote) {alert("Please send a vote!")}});
   }
 
   let sendGuess = function () {
     dispatch("sendGuess", guess.toUpperCase());
     sent_guess = true;
-    progress.set(1);
   };
 
-  export const onGuess = (guess: Guess) => {
+  export const onGuess = (new_guess: Guess) => {
     // TODO guess shadows global
-    console.log(guess);
-    guesses = [...guesses, guess];
-    console.log(guesses);
+    guesses = [...guesses, new_guess];
     if (guesses.length === $users.size) {
       startVoting();
     }
@@ -70,14 +71,17 @@
   let sendVote = function () {
     dispatch("sendVote", vote);
     sent_vote = true;
-    progress.set(1);
+  };
+
+  let givePoint = function (username: string) {
+    dispatch("givePoint", username);
   };
 
   export const onVote = (vote: Guess) => {
     console.log(vote);
     votes = [...votes, vote];
     console.log(votes);
-    if (votes.length === $users.size - 1) {
+    if (votes.length === $users.size) {
       alert("Everybody voted!");
       state = states.SCORE;
     }
@@ -157,11 +161,17 @@
     <button class="button is-info is-large" on:click={sendVote}>Send!</button>
   {/if}
 {:else if state === states.SCORE}
-  <ul>
+  <select bind:value={give_point_to}>
     {#each votes as vote}
-      <li>{JSON.stringify(vote)}</li>
+      {#if vote.username !== $my_username}
+      <option value="{vote.username}">{vote.prompt}</option>
+      {/if}
     {/each}
-  </ul>
+  </select>
+  <button class="button"
+    on:click|once={() => givePoint(give_point_to)}
+    disabled={give_point_to === ""}>
+    Vote!</button>
 {/if}
 <progress
   class="progress"

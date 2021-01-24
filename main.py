@@ -21,7 +21,7 @@ class ConnectionManager:
 
 
 manager = ConnectionManager()
-users = []
+users = {}
 
 @app.websocket("/ws/{username}")
 async def websocket_endpoint(websocket: WebSocket, username: str, img: str):
@@ -31,13 +31,15 @@ async def websocket_endpoint(websocket: WebSocket, username: str, img: str):
         "img_src": img,
     })
     await manager.connect(websocket)
-    users.append((username, img))
+    users[username] = img
     await websocket.send_json({
         "type": "old_users",
         "users": users})
     try:
         while True:
             data = await websocket.receive_json()
+            if "username" in data:
+                assert data["username"] == username
             data["username"] = username
             await manager.broadcast_json(data)
     except WebSocketDisconnect:

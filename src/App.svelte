@@ -30,6 +30,11 @@
     let username = event.detail.username;
     img_src = event.detail.img_src;
     my_username.set(username);
+    users.update((users) => {
+          users.set(username, { score: 0, img_src: img_src });
+          console.log([...users]);
+          return users;
+        });
     console.log("Logged in: ", event.detail);
     let tg_login = document.getElementById("telegram-login-minnybot");
     if (tg_login?.parentNode) tg_login.parentNode.removeChild(tg_login);
@@ -57,7 +62,7 @@
         }
         break;
       case "old_users":
-        const old_users = message.users.map((u: [string, string]) => {
+        const old_users = Object.entries(message.users).map((u: [string, string]) => {
           return { score: 0, username: u[0], img_src: u[1] };
         });
         users.update((users) => {
@@ -93,7 +98,14 @@
         break;
       default:
         alert("Unknown type, see console");
+        console.error(message);
     }
+  }
+
+  function startGame() {
+    websocket?.sendObject({
+      type: "start_game"
+    });
   }
 
   // called by <Draw/>
@@ -104,6 +116,7 @@
       type: "picture",
       lines: message.detail.lines,
       prompt: message.detail.prompt,
+      username: $my_username,
     });
   }
 
@@ -113,6 +126,7 @@
     websocket?.sendObject({
       type: "voted_prompt",
       prompt: message.detail,
+      username: $my_username,
     });
   }
 
@@ -122,18 +136,32 @@
     websocket?.sendObject({
       type: "guessed_prompt",
       prompt: message.detail,
+      username: $my_username,
+    });
+  }
+
+  // called by <Guess/>
+  function givePoint(message: CustomEvent) {
+    console.log("givePoint message", message);
+    websocket?.sendObject({
+      type: "give_point",
+      other_username: message.detail,
     });
   }
 </script>
 
 <style>
   .container {
-    margin-left: 1em;
-    margin-right: 1em;
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
   }
 </style>
 
 <div class="container">
+  {#if $my_username}
+    <Avatar username={$my_username} />
+  {/if}
   {#if state === states.LOGIN}
     <TelegramLogin on:login={handleLogin} />
   {:else if state === states.WAIT_START}
@@ -143,6 +171,12 @@
         <Avatar username={user[0]} />
       {/each}
     </ul>
+    <button
+      class="button"
+        on:click|once={startGame}
+        disabled={user_list.length < 2}>
+        Everybody in!
+    </button>
   {:else if state === states.DRAW}
     <h1 class="title has-text-centered">Let's draw!</h1>
     <Draw on:sendPicture={sendPicture} />
@@ -158,7 +192,8 @@
       bind:this={guessComponent}
       {pictures}
       on:sendVote={sendVote}
-      on:sendGuess={sendGuess} />
+      on:sendGuess={sendGuess}
+      on:givePoint={givePoint} />
   {:else}
     <h1 class="title has-text-centered">UNKNOWN STATE AAAA</h1>
   {/if}

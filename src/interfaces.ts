@@ -23,7 +23,7 @@ interface NewUserMessage {
 
   interface OldUsersMessage {
     type: "old_users";
-    users: [string, string][];
+    users: {[key: string]: string};
   }
   interface StartGameMessage {
     type: "start_game";
@@ -41,4 +41,9 @@ interface NewUserMessage {
     type: "voted_prompt";
   }
 
-export type WebSocketMessage = NewUserMessage | OldUsersMessage | StartGameMessage | NewPictureMessage | GuessPrompt | VotePrompt;
+  interface GivePoint {
+    type: "give_point";
+    other_username: string;
+  }
+
+export type WebSocketMessage = NewUserMessage | OldUsersMessage | StartGameMessage | NewPictureMessage | GuessPrompt | VotePrompt | GivePoint;
