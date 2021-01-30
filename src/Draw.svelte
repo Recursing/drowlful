@@ -5,7 +5,7 @@
   const dispatch = createEventDispatcher();
   import { tweened } from "svelte/motion";
   const tot_time = 101;
-  import { prompts } from "./prompts.js";
+  import { prompts } from "./prompts";
   const prompt = prompts[
     Math.floor(Math.random() * prompts.length)
   ].toUpperCase();
@@ -28,6 +28,19 @@
   progress.set(1).then(onDone);
 </script>
 
+<h1 class="is-title has-text-centered">{prompt}</h1>
+<Canvas bind:lines />
+
+<h1 class="has-text-centered">{sec_left}</h1>
+<progress
+  class="progress"
+  class:is-success={$progress < 0.5}
+  class:is-warning={$progress >= 0.5 && $progress < 0.8}
+  class:is-danger={$progress >= 0.8}
+  value={$progress}
+/>
+<button on:click={onDone} disabled={lines.length === 0}>Done!</button>
+
 <style>
   h1 {
     font-size: 4em;
@@ -39,15 +52,3 @@
     width: 100%;
   }
 </style>
-
-<h1 class="is-title has-text-centered">{prompt}</h1>
-<Canvas bind:lines />
-
-<h1 class="has-text-centered">{sec_left}</h1>
-<progress
-  class="progress"
-  class:is-success={$progress < 0.5}
-  class:is-warning={$progress >= 0.5 && $progress < 0.8}
-  class:is-danger={$progress >= 0.8}
-  value={$progress} />
-<button on:click={onDone} disabled={lines.length === 0}>Done!</button>

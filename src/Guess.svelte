@@ -1,6 +1,7 @@
 <script lang="ts">
-  import type { Picture, Guess } from "./interfaces";
+  import type { Picture, Guess, VotePrompt, User } from "./interfaces";
   import { users, my_username } from "./stores";
+  import { prompts } from "./prompts";
   import Avatar from "./Avatar.svelte";
   import Canvas from "./Canvas.svelte";
   import { createEventDispatcher } from "svelte";
@@ -11,6 +12,7 @@
     WRITE_GUESS: "write_guess",
     PICK_GUESS: "pick_guess",
     SCORE: "scoring",
+    LEADERBOARD: "leaderboard",
   };
   const tot_time = 31;
 
@@ -18,41 +20,51 @@
   let state = states.WRITE_GUESS;
   let guess = "";
   let sent_guess = false;
-  let vote = "";
-  let give_point_to = "";
+  let voted_for: string;
   let sent_vote = false;
+  let sent_points: string[] = [];
+  let sorted_users: User[] = [];
 
   let guesses: Guess[] = [];
-  let votes: Guess[] = [];
+  let votes: VotePrompt[] = [];
 
   function startGuessing() {
     if (pictures.length == 0) {
-      alert("Oh noes! No pictures!");
+      alert("The end!");
       return;
     }
-    picture = pictures.pop()!;
-    guesses = [{ prompt: picture.prompt, username: picture.username }];
+    picture = pictures.shift()!;
+    guesses = [{ prompt: picture.prompt, guesser_username: picture.username }];
     votes = [];
     state = states.WRITE_GUESS;
     sent_guess = picture.username === $my_username;
     guess = "";
+    sent_points = [];
     progress
       .set(0, { duration: 500 })
       .then(() => progress.set(1))
-      .then(() => {if (!sent_guess) {alert("Please send a guess!")}});
+      .then(() => {
+        if (!sent_guess) {
+          alert("Please send a guess!");
+        }
+      });
   }
 
   function startVoting() {
     state = states.PICK_GUESS;
-    vote = "";
-    if ($my_username === picture.username){
-      vote = picture.prompt;
+    sent_vote = false;
+    if ($my_username === picture.username) {
+      voted_for = picture.username;
       sendVote();
     }
     progress
       .set(0, { duration: 500 })
       .then(() => progress.set(1))
-      .then(() => {if (!sent_vote) {alert("Please send a vote!")}});
+      .then(() => {
+        if (!sent_vote) {
+          alert("Please send a vote!");
+        }
+      });
   }
 
   let sendGuess = function () {
@@ -61,31 +73,49 @@
   };
 
   export const onGuess = (new_guess: Guess) => {
-    // TODO guess shadows global
-    guesses = [...guesses, new_guess];
+    guesses.push(new_guess);
+    guesses.sort((a, b) => a.prompt.localeCompare(b.prompt));
+    guesses = guesses;
     if (guesses.length === $users.size) {
       startVoting();
     }
   };
 
   let sendVote = function () {
-    dispatch("sendVote", vote);
+    dispatch("sendVote", voted_for);
     sent_vote = true;
   };
 
   let givePoint = function (username: string) {
+    sent_points = [...sent_points, username];
     dispatch("givePoint", username);
   };
 
-  export const onVote = (vote: Guess) => {
+  export const onVote = (vote: VotePrompt) => {
     console.log(vote);
     votes = [...votes, vote];
     console.log(votes);
     if (votes.length === $users.size) {
-      alert("Everybody voted!");
       state = states.SCORE;
+      progress
+        .set(0.7, { duration: 500 })
+        .then(() => progress.set(1))
+        .then(startLeaderboard);
     }
   };
+
+  function startLeaderboard() {
+    state = states.LEADERBOARD;
+    sorted_users = [...$users.values()];
+    sorted_users.sort(
+      (u1, u2) => (u2.score - u1.score) * 100 + u2.lol_score - u1.lol_score
+    );
+    sorted_users = sorted_users;
+    progress
+      .set(0.8, { duration: 500 })
+      .then(() => progress.set(1))
+      .then(startGuessing);
+  }
 
   const progress = tweened(0, {
     duration: tot_time * 1000,
@@ -95,20 +125,6 @@
 
   startGuessing();
 </script>
-
-<style>
-  h1 {
-    font-size: 4em;
-    color: red;
-    font-weight: 100;
-  }
-  progress {
-    width: 100%;
-  }
-  .field {
-    margin: 2em;
-  }
-</style>
 
 {#if state === states.WRITE_GUESS}
   <h1 class="is-title has-text-centered">Type your guess for:</h1>
@@ -124,7 +140,7 @@
   {#if sent_guess}
     <h2 class="has-text-centered">Got guesses:</h2>
     {#each guesses as guess}
-      <Avatar username={guess.username} />
+      <Avatar username={guess.guesser_username} />
     {/each}
   {:else}
     <div class="field has-addons has-addons-centered">
@@ -134,13 +150,15 @@
           class="input is-large"
           type="text"
           placeholder="Your guess"
-          required />
+          required
+        />
       </div>
       <div class="control">
         <button
           class="button is-info is-large"
           on:click={sendGuess}
-          disabled={guess.length === 0}>
+          disabled={guess.length === 0}
+        >
           Send!
         </button>
       </div>
@@ -150,33 +168,78 @@
   {#if sent_vote}
     <h2 class="has-text-centered">Got votes:</h2>
     {#each votes as vote}
-      <Avatar username={vote.username} />
+      <Avatar username={vote.voter_username} />
     {/each}
   {:else}
-    <select bind:value={vote}>
+    <select bind:value={voted_for}>
       {#each guesses as t_guess}
-        <option>{t_guess.prompt}</option>
+        {#if t_guess.guesser_username !== $my_username}
+          <option value={t_guess.guesser_username}>{t_guess.prompt}</option>
+        {/if}
       {/each}
     </select>
     <button class="button is-info is-large" on:click={sendVote}>Send!</button>
   {/if}
 {:else if state === states.SCORE}
-  <select bind:value={give_point_to}>
-    {#each votes as vote}
-      {#if vote.username !== $my_username}
-      <option value="{vote.username}">{vote.prompt}</option>
+  {#each guesses as t_guess}
+    <div class="columns is-multiline half-width">
+      {#if t_guess.guesser_username !== $my_username && !prompts.includes(t_guess.prompt)}
+        <div class="column is-half center-text">{t_guess.prompt}</div>
+        <div class="column is-half">
+          <button
+            class="button"
+            on:click|once={() => givePoint(t_guess.guesser_username)}
+            disabled={sent_points.includes(t_guess.guesser_username)}
+            >LOL point</button
+          >
+        </div>
       {/if}
+    </div>
+  {/each}
+{:else if state === states.LEADERBOARD}
+  <div class="columns is-multiline half-width">
+    <div class="column is-half center-text">
+    </div>
+    <div class="column is-one-quarter center-text"><strong>Score</strong></div>
+    <div class="column is-one-quarter center-text"><strong>LOLs</strong></div>
+    {#each sorted_users as user}
+        <div class="column is-half center-text">
+          <Avatar username={user.username}></Avatar>
+        </div>
+        <div class="column is-one-quarter center-text">{user.score}</div>
+        <div class="column is-one-quarter center-text">{user.lol_score}</div>
     {/each}
-  </select>
-  <button class="button"
-    on:click|once={() => givePoint(give_point_to)}
-    disabled={give_point_to === ""}>
-    Vote!</button>
+  </div>
 {/if}
 <progress
   class="progress"
   class:is-success={$progress < 0.5}
   class:is-warning={$progress >= 0.5 && $progress < 0.8}
   class:is-danger={$progress >= 0.8}
-  value={$progress} />
+  value={$progress}
+/>
 <h1 class="has-text-centered">{sec_left}</h1>
+
+<style>
+  h1 {
+    font-size: 4em;
+    color: red;
+    font-weight: 100;
+  }
+  progress {
+    width: 100%;
+  }
+  .field {
+    margin: 2em;
+  }
+
+  .half-width {
+    width: 50%;
+    margin: auto;
+  }
+
+  .center-text {
+    text-align: center;
+    margin: auto;
+  }
+</style>

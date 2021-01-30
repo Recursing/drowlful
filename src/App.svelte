@@ -2,7 +2,7 @@
   import type { Picture, WebSocketMessage } from "./interfaces";
   import Avatar from "./Avatar.svelte";
   import TelegramLogin from "./TelegramLogin.svelte";
-  import {WebSocketConnection} from "./Websocket";
+  import { WebSocketConnection } from "./Websocket";
   import Draw from "./Draw.svelte";
   import Guess from "./Guess.svelte";
   import { users, my_username } from "./stores";
@@ -31,10 +31,15 @@
     img_src = event.detail.img_src;
     my_username.set(username);
     users.update((users) => {
-          users.set(username, { score: 0, img_src: img_src });
-          console.log([...users]);
-          return users;
-        });
+      users.set(username, {
+        lol_score: 0,
+        username: username,
+        score: 0,
+        img_src: img_src,
+      });
+      console.log([...users]);
+      return users;
+    });
     console.log("Logged in: ", event.detail);
     let tg_login = document.getElementById("telegram-login-minnybot");
     if (tg_login?.parentNode) tg_login.parentNode.removeChild(tg_login);
@@ -52,7 +57,12 @@
           img_src: message.img_src,
         };
         users.update((users) => {
-          users.set(new_user.username, { score: 0, img_src: new_user.img_src });
+          users.set(new_user.username, {
+            lol_score: 0,
+            username: new_user.username,
+            score: 0,
+            img_src: new_user.img_src,
+          });
           console.log([...users]);
           return users;
         });
@@ -62,12 +72,19 @@
         }
         break;
       case "old_users":
-        const old_users = Object.entries(message.users).map((u: [string, string]) => {
-          return { score: 0, username: u[0], img_src: u[1] };
-        });
+        const old_users = Object.entries(message.users).map(
+          (u: [string, string]) => {
+            return { score: 0, lol_score: 0, username: u[0], img_src: u[1] };
+          }
+        );
         users.update((users) => {
           for (let u of old_users) {
-            users.set(u.username, { score: 0, img_src: u.img_src });
+            users.set(u.username, {
+              score: 0,
+              lol_score: 0,
+              img_src: u.img_src,
+              username: u.username,
+            });
           }
           return users;
         });
@@ -94,17 +111,45 @@
         guessComponent.onGuess(message);
         break;
       case "voted_prompt":
+        if (message.voted_username !== message.voter_username) {
+          users.update((users) => {
+            let user = users.get(message.voted_username);
+            if (!user) {
+              console.error("MISSING USER");
+              alert("MISSING USER!!!!");
+              return users;
+            }
+            user.score += 1;
+            users.set(message.voted_username, user);
+            console.log([...users]);
+            return users;
+          });
+        }
         guessComponent.onVote(message);
+        break;
+      case "give_point":
+        users.update((users) => {
+          let user = users.get(message.receiver_username);
+          if (!user) {
+            console.error("MISSING USER");
+            alert("MISSING USER!!!!");
+            return users;
+          }
+          user.lol_score += 1;
+          users.set(message.receiver_username, user);
+          console.log([...users]);
+          return users;
+        });
         break;
       default:
         alert("Unknown type, see console");
         console.error(message);
     }
-  }
+  };
 
   function startGame() {
     websocket?.sendObject({
-      type: "start_game"
+      type: "start_game",
     });
   }
 
@@ -125,8 +170,8 @@
     console.log("sendVote message", message);
     websocket?.sendObject({
       type: "voted_prompt",
-      prompt: message.detail,
-      username: $my_username,
+      voted_username: message.detail,
+      voter_username: $my_username,
     });
   }
 
@@ -136,7 +181,7 @@
     websocket?.sendObject({
       type: "guessed_prompt",
       prompt: message.detail,
-      username: $my_username,
+      guesser_username: $my_username,
     });
   }
 
@@ -145,23 +190,12 @@
     console.log("givePoint message", message);
     websocket?.sendObject({
       type: "give_point",
-      other_username: message.detail,
+      receiver_username: message.detail,
     });
   }
 </script>
 
-<style>
-  .container {
-    margin-left: auto;
-    margin-right: auto;
-    width: fit-content;
-  }
-</style>
-
 <div class="container">
-  {#if $my_username}
-    <Avatar username={$my_username} />
-  {/if}
   {#if state === states.LOGIN}
     <TelegramLogin on:login={handleLogin} />
   {:else if state === states.WAIT_START}
@@ -173,9 +207,10 @@
     </ul>
     <button
       class="button"
-        on:click|once={startGame}
-        disabled={user_list.length < 2}>
-        Everybody in!
+      on:click|once={startGame}
+      disabled={user_list.length < 2}
+    >
+      Everybody in!
     </button>
   {:else if state === states.DRAW}
     <h1 class="title has-text-centered">Let's draw!</h1>
@@ -193,8 +228,17 @@
       {pictures}
       on:sendVote={sendVote}
       on:sendGuess={sendGuess}
-      on:givePoint={givePoint} />
+      on:givePoint={givePoint}
+    />
   {:else}
     <h1 class="title has-text-centered">UNKNOWN STATE AAAA</h1>
   {/if}
 </div>
+
+<style>
+  .container {
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+  }
+</style>

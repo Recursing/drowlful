@@ -21,7 +21,7 @@ class ConnectionManager:
 
 
 manager = ConnectionManager()
-users = {}
+user_images = {}
 
 @app.websocket("/ws/{username}")
 async def websocket_endpoint(websocket: WebSocket, username: str, img: str):
@@ -31,10 +31,10 @@ async def websocket_endpoint(websocket: WebSocket, username: str, img: str):
         "img_src": img,
     })
     await manager.connect(websocket)
-    users[username] = img
+    user_images[username] = img
     await websocket.send_json({
         "type": "old_users",
-        "users": users})
+        "users": user_images})
     try:
         while True:
             data = await websocket.receive_json()
@@ -44,4 +44,5 @@ async def websocket_endpoint(websocket: WebSocket, username: str, img: str):
             await manager.broadcast_json(data)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+        print(f"MAN OVERBOARD MAN OVERBOARD: #{username}")
         # await manager.broadcast(f"Client #{username} left the chat")

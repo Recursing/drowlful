@@ -3,7 +3,7 @@ export class WebSocketConnection {
     onMessage: (message: WebSocketMessage) => void;
     websocket: WebSocket | null;
     constructor() {
-        this.onMessage = (_: WebSocketMessage) => {};
+        this.onMessage = (_: WebSocketMessage) => { };
         this.websocket = null;
     }
 
@@ -17,7 +17,7 @@ export class WebSocketConnection {
     }
 
     sendObject(object: WebSocketMessage) {
-        if (this.websocket === null){
+        if (this.websocket === null) {
             console.error("Can't send without websocket");
             return;
         }

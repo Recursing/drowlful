@@ -1,8 +1,13 @@
 <script lang="ts">
   import { users } from "./stores";
   export let username: string;
-  let img_src: string = $users.get(username)?.img_src;
+  let img_src: string | undefined = $users.get(username)?.img_src;
 </script>
+
+<div>
+  <img class="is-96x96" alt="user pic" src={img_src} />
+  <p class="has-text-centered">{username}</p>
+</div>
 
 <style>
   div {
@@ -17,8 +22,3 @@
     float: left;
   }
 </style>
-
-<div>
-  <img class="is-96x96" alt="user pic" src={img_src} />
-  <p class="has-text-centered">{username}</p>
-</div>

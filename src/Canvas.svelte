@@ -37,42 +37,28 @@
   }
 </script>
 
-<style>
-  svg {
-    overflow: visible;
-    margin: 0 auto;
-    border-style: solid;
-    display: block;
-  }
-  polyline {
-    pointer-events: none;
-  }
-  .controls {
-    margin-left: 3em;
-    width: 50%;
-    margin: 0 auto;
-  }
-</style>
-
 <svg
   on:mousemove={onMousemove}
   on:mouseup={onMouseup}
   on:mousedown={onMousedown}
   on:mouseleave={onMouseup}
   width="800"
-  height="600">
+  height="600"
+>
   {#each lines as { stroke, width, points }}
     <polyline
       style="fill: none; stroke: {stroke}; stroke-width: {width}"
       {points}
       stroke-linecap="round"
-      stroke-linejoin="round" />
+      stroke-linejoin="round"
+    />
   {/each}
   <polyline
     style="fill: none; stroke: {cur_line.stroke}; stroke-width: {cur_line.width}"
     points={cur_line.points}
     stroke-linecap="round"
-    stroke-linejoin="round" />
+    stroke-linejoin="round"
+  />
 </svg>
 
 {#if editable}
@@ -98,10 +84,28 @@
       </select>
       <button
         on:click={() => {
-          lines.length > 0 ? (lines = lines.slice(0, lines.length - 1)) : '';
-        }}>
+          lines.length > 0 ? (lines = lines.slice(0, lines.length - 1)) : "";
+        }}
+      >
         undo
       </button>
     </label>
   </div>
 {/if}
+
+<style>
+  svg {
+    overflow: visible;
+    margin: 0 auto;
+    border-style: solid;
+    display: block;
+  }
+  polyline {
+    pointer-events: none;
+  }
+  .controls {
+    margin-left: 3em;
+    width: 50%;
+    margin: 0 auto;
+  }
+</style>

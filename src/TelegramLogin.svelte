@@ -67,7 +67,8 @@
         class="input"
         type="text"
         placeholder="username"
-        required />
+        required
+      />
     </div>
   </div>
 
@@ -79,16 +80,16 @@
         bind:value={img_src}
         class="input"
         type="url"
-        required />
+        required
+      />
     </div>
   </div>
   <div class="field column is-narrow">
     <label for="login-button" class="label">&nbsp</label>
     <div class="control">
-      <button
-        id="login-button"
-        on:click={onManualAuth}
-        class="button is-link">Login</button>
+      <button id="login-button" on:click={onManualAuth} class="button is-link"
+        >Login</button
+      >
     </div>
   </div>
 </div>
