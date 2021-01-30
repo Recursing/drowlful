@@ -5,10 +5,7 @@
   const dispatch = createEventDispatcher();
   import { tweened } from "svelte/motion";
   const tot_time = 121;
-  import { prompts } from "./prompts";
-  const prompt = prompts[
-    Math.floor(Math.random() * prompts.length)
-  ].toUpperCase();
+  export let prompt: string;
   export let lines: Line[] = [];
   const progress = tweened(0, {
     duration: tot_time * 1000,

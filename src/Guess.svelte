@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { Picture, Guess, VotePrompt, User } from "./interfaces";
-  import { users, my_username } from "./stores";
-  import { prompts } from "./prompts";
+  import { users, my_username, my_prompt } from "./stores";
   import Avatar from "./Avatar.svelte";
   import Canvas from "./Canvas.svelte";
   import { createEventDispatcher } from "svelte";
@@ -48,6 +47,10 @@
           alert("Please send a guess!");
         }
       });
+    if (picture.prompt === $my_prompt) {
+      guess = "-----";
+      setTimeout(sendGuess, 500);
+    }
   }
 
   function startVoting() {
@@ -55,6 +58,10 @@
     sent_vote = false;
     if ($my_username === picture.username) {
       voted_for = picture.username;
+      sendVote();
+    }
+    if ($my_prompt === picture.prompt) {
+      voted_for = $my_username;
       sendVote();
     }
     progress
@@ -82,6 +89,20 @@
   };
 
   let sendVote = function () {
+    if (picture.username === voted_for && voted_for !== $my_username) {
+      users.update((users) => {
+        let user = users.get($my_username);
+        if (!user) {
+          console.error("MISSING USER");
+          alert("MISSING USER!!!!");
+          return users;
+        }
+        user.score += 1;
+        users.set($my_username, user);
+        console.log([...users]);
+        return users;
+      });
+    }
     dispatch("sendVote", voted_for);
     sent_vote = true;
   };
@@ -112,8 +133,8 @@
     );
     sorted_users = sorted_users;
     progress
-      .set(0.5, { duration: 1000 })
-      .then(() => progress.set(1, { duration: tot_time * 1000 * 0.5 }))
+      .set(0.6, { duration: 1000 })
+      .then(() => progress.set(1, { duration: tot_time * 1000 * 0.6 }))
       .then(startGuessing);
   }
 
@@ -183,7 +204,7 @@
 {:else if state === states.SCORE}
   {#each guesses as t_guess}
     <div class="columns is-multiline half-width">
-      {#if t_guess.guesser_username !== $my_username && !prompts.includes(t_guess.prompt)}
+      {#if t_guess.guesser_username !== $my_username && t_guess.prompt !== $my_prompt && t_guess.prompt !== picture.prompt && t_guess.prompt !== '-----'}
         <div class="column is-half center-text">{t_guess.prompt}</div>
         <div class="column is-half">
           <button

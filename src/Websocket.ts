@@ -7,8 +7,10 @@ export class WebSocketConnection {
         this.websocket = null;
     }
 
-    setUp(name: string, img_src: string) {
-        this.websocket = new WebSocket(`wss://${document.location.host}:8000/ws/${name}?img=${encodeURIComponent(img_src)}`);
+    setUp(name: string, img_src: string, prompt: string) {
+        const conn_string = `wss://${document.location.host}:8000/ws/${name}?prompt=${prompt}&img=${encodeURIComponent(img_src)}`;
+        console.log(conn_string);
+        this.websocket = new WebSocket(conn_string);
         this.websocket.onmessage = (event: MessageEvent) => {
             console.log(event);
             console.log("got data:", event.data);

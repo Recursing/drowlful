@@ -3,6 +3,7 @@ export type User = {
   username: string,
   score: number,
   lol_score: number,
+  proposed_prompt: string,
 }
 
 export type Line = {
@@ -26,14 +27,16 @@ interface NewUserMessage {
   type: "new_user";
   username: string;
   img_src: string;
+  proposed_prompt: string;
 }
 
 interface OldUsersMessage {
   type: "old_users";
-  users: { [key: string]: string };
+  users: { [key: string]: [string, string] };
 }
 interface StartGameMessage {
   type: "start_game";
+  assigned_prompt: string;
 }
 
 interface NewPictureMessage extends Picture {

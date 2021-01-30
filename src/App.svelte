@@ -5,7 +5,7 @@
   import { WebSocketConnection } from "./Websocket";
   import Draw from "./Draw.svelte";
   import Guess from "./Guess.svelte";
-  import { users, my_username } from "./stores";
+  import { users, my_username, my_prompt } from "./stores";
   $: user_list = [...$users];
 
   const states = {
@@ -18,6 +18,7 @@
 
   let state = states.LOGIN;
   let img_src: string; // TODO maybe move to object store
+  let assigned_prompt = "";
 
   let websocket = new WebSocketConnection();
   let guessComponent: Guess;
@@ -29,13 +30,16 @@
     state = states.WAIT_START;
     let username = event.detail.username;
     img_src = event.detail.img_src;
+    let prompt = event.detail.prompt;
     my_username.set(username);
+    my_prompt.set(prompt);
     users.update((users) => {
       users.set(username, {
         lol_score: 0,
         username: username,
         score: 0,
         img_src: img_src,
+        proposed_prompt: prompt,
       });
       console.log([...users]);
       return users;
@@ -43,7 +47,7 @@
     console.log("Logged in: ", event.detail);
     let tg_login = document.getElementById("telegram-login-minnybot");
     if (tg_login?.parentNode) tg_login.parentNode.removeChild(tg_login);
-    websocket.setUp(username, img_src);
+    websocket.setUp(username, img_src, prompt);
   }
 
   websocket.onMessage = (message: WebSocketMessage) => {
@@ -55,6 +59,7 @@
         const new_user = {
           username: message.username,
           img_src: message.img_src,
+          proposed_prompt: message.proposed_prompt,
         };
         users.update((users) => {
           users.set(new_user.username, {
@@ -62,6 +67,7 @@
             username: new_user.username,
             score: 0,
             img_src: new_user.img_src,
+            proposed_prompt: new_user.proposed_prompt,
           });
           console.log([...users]);
           return users;
@@ -73,8 +79,14 @@
         break;
       case "old_users":
         const old_users = Object.entries(message.users).map(
-          (u: [string, string]) => {
-            return { score: 0, lol_score: 0, username: u[0], img_src: u[1] };
+          (u: [string, [string, string]]) => {
+            return {
+              score: 0,
+              lol_score: 0,
+              username: u[0],
+              img_src: u[1][0],
+              proposed_prompt: u[1][1],
+            };
           }
         );
         users.update((users) => {
@@ -84,6 +96,7 @@
               lol_score: 0,
               img_src: u.img_src,
               username: u.username,
+              proposed_prompt: u.proposed_prompt,
             });
           }
           return users;
@@ -91,6 +104,7 @@
         break;
       case "start_game":
         state = states.DRAW;
+        assigned_prompt = message.assigned_prompt;
         break;
       case "picture":
         pictures = [
@@ -150,6 +164,7 @@
   function startGame() {
     websocket?.sendObject({
       type: "start_game",
+      assigned_prompt: "",
     });
   }
 
@@ -214,7 +229,7 @@
     </button>
   {:else if state === states.DRAW}
     <h1 class="title has-text-centered">Let's draw!</h1>
-    <Draw on:sendPicture={sendPicture} />
+    <Draw prompt={assigned_prompt} on:sendPicture={sendPicture} />
   {:else if state === states.WAIT_DRAWERS}
     <h1 class="title has-text-centered">
       Waiting for other players to finish drawing, got:

@@ -4,8 +4,9 @@
   const dispatch = createEventDispatcher();
 
   let username = "";
+  let prompt = "";
 
-  interface User {
+  interface TelegramUser {
     username?: string;
     first_name?: string;
     last_name?: string;
@@ -23,7 +24,11 @@
 
   let img_src = default_images[Math.floor(Math.random() * 5)];
 
-  function onTelegramAuth(user: User) {
+  function onTelegramAuth(user: TelegramUser) {
+    if (!prompt) {
+      alert("Write prompt first!");
+      return;
+    }
     username = user.username || user.first_name + " " + user.last_name;
     img_src = user.photo_url || img_src;
     console.log(
@@ -40,14 +45,20 @@
     dispatch("login", {
       username: username,
       img_src: img_src,
+      prompt: prompt,
     });
   }
 
   function onManualAuth() {
+    if (!prompt) {
+      alert("Write prompt first!");
+      return;
+    }
     console.log("dispatching");
     dispatch("login", {
       username: username,
       img_src: img_src,
+      prompt: prompt,
     });
   }
 
@@ -56,6 +67,17 @@
     window.onTelegramAuth = onTelegramAuth;
   });
 </script>
+<div class="field">
+  <div class="control is-expanded">
+    <input
+      bind:value={prompt}
+      class="input is-large"
+      type="text"
+      placeholder="Your prompt"
+      required
+    />
+  </div>
+</div>
 
 <pre>No telegram fallback, please don't use this</pre>
 <div class="columns">
