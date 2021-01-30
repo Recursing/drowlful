@@ -69,3 +69,8 @@ button:not(:disabled):active {
 button:focus {
   border-color: #666;
 }
+
+#telegram-login-minnybot {
+  display: block;
+  margin: 8em auto 8em auto;
+}

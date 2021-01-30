@@ -57,6 +57,7 @@
   });
 </script>
 
+<pre>No telegram fallback, please don't use this</pre>
 <div class="columns">
   <div class="field column">
     <label for="username-input" class="label">Username</label>
