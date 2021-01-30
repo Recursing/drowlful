@@ -98,8 +98,8 @@
     if (votes.length === $users.size) {
       state = states.SCORE;
       progress
-        .set(0.7, { duration: 500 })
-        .then(() => progress.set(1))
+        .set(0.5, { duration: 500 })
+        .then(() => progress.set(1, { duration: tot_time * 1000 * 0.5 }))
         .then(startLeaderboard);
     }
   };
@@ -112,8 +112,8 @@
     );
     sorted_users = sorted_users;
     progress
-      .set(0.8, { duration: 500 })
-      .then(() => progress.set(1))
+      .set(0.6, { duration: 500 })
+      .then(() => progress.set(1, { duration: tot_time * 1000 * 0.4 }))
       .then(startGuessing);
   }
 
@@ -198,16 +198,15 @@
   {/each}
 {:else if state === states.LEADERBOARD}
   <div class="columns is-multiline half-width">
-    <div class="column is-half center-text">
-    </div>
+    <div class="column is-half center-text" />
     <div class="column is-one-quarter center-text"><strong>Score</strong></div>
     <div class="column is-one-quarter center-text"><strong>LOLs</strong></div>
     {#each sorted_users as user}
-        <div class="column is-half center-text">
-          <Avatar username={user.username}></Avatar>
-        </div>
-        <div class="column is-one-quarter center-text">{user.score}</div>
-        <div class="column is-one-quarter center-text">{user.lol_score}</div>
+      <div class="column is-half center-text">
+        <Avatar username={user.username} />
+      </div>
+      <div class="column is-one-quarter center-text">{user.score}</div>
+      <div class="column is-one-quarter center-text">{user.lol_score}</div>
     {/each}
   </div>
 {/if}

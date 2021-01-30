@@ -8,7 +8,7 @@ export class WebSocketConnection {
     }
 
     setUp(name: string, img_src: string) {
-        this.websocket = new WebSocket(`ws://localhost:8000/ws/${name}?img=${encodeURIComponent(img_src)}`);
+        this.websocket = new WebSocket(`wss://${document.location.host}:8000/ws/${name}?img=${encodeURIComponent(img_src)}`);
         this.websocket.onmessage = (event: MessageEvent) => {
             console.log(event);
             console.log("got data:", event.data);
