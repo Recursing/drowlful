@@ -4,7 +4,7 @@
   import { createEventDispatcher } from "svelte";
   const dispatch = createEventDispatcher();
   import { tweened } from "svelte/motion";
-  const tot_time = 101;
+  const tot_time = 121;
   import { prompts } from "./prompts";
   const prompt = prompts[
     Math.floor(Math.random() * prompts.length)

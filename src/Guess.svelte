@@ -14,7 +14,7 @@
     SCORE: "scoring",
     LEADERBOARD: "leaderboard",
   };
-  const tot_time = 31;
+  const tot_time = 60;
 
   let picture = pictures[0];
   let state = states.WRITE_GUESS;
@@ -41,7 +41,7 @@
     guess = "";
     sent_points = [];
     progress
-      .set(0, { duration: 500 })
+      .set(0, { duration: 1000 })
       .then(() => progress.set(1))
       .then(() => {
         if (!sent_guess) {
@@ -58,7 +58,7 @@
       sendVote();
     }
     progress
-      .set(0, { duration: 500 })
+      .set(0, { duration: 1000 })
       .then(() => progress.set(1))
       .then(() => {
         if (!sent_vote) {
@@ -98,8 +98,8 @@
     if (votes.length === $users.size) {
       state = states.SCORE;
       progress
-        .set(0.5, { duration: 500 })
-        .then(() => progress.set(1, { duration: tot_time * 1000 * 0.5 }))
+        .set(0.4, { duration: 1000 })
+        .then(() => progress.set(1, { duration: tot_time * 1000 * 0.6 }))
         .then(startLeaderboard);
     }
   };
@@ -112,8 +112,8 @@
     );
     sorted_users = sorted_users;
     progress
-      .set(0.6, { duration: 500 })
-      .then(() => progress.set(1, { duration: tot_time * 1000 * 0.4 }))
+      .set(0.5, { duration: 1000 })
+      .then(() => progress.set(1, { duration: tot_time * 1000 * 0.5 }))
       .then(startGuessing);
   }
 
