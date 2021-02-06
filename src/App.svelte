@@ -2,35 +2,25 @@
   import type { Picture, WebSocketMessage } from "./interfaces";
   import Avatar from "./Avatar.svelte";
   import TelegramLogin from "./TelegramLogin.svelte";
-  import { WebSocketConnection } from "./Websocket";
+  import { websocket } from "./Websocket";
   import Draw from "./Draw.svelte";
   import Guess from "./Guess.svelte";
-  import { users, my_username, my_prompt } from "./stores";
+  import { users, my_username, my_prompt, game_state } from "./stores";
   $: user_list = [...$users];
 
-  const states = {
-    LOGIN: "login",
-    WAIT_START: "wait_start",
-    DRAW: "draw",
-    WAIT_DRAWERS: "wait_drawers",
-    GUESS: "guess",
-  };
-
-  let state = states.LOGIN;
   let img_src: string; // TODO maybe move to object store
   let assigned_prompt = "";
 
-  let websocket = new WebSocketConnection();
   let guessComponent: Guess;
 
   let pictures: Picture[] = [];
 
   // Called by <TelegramLogin/>
   function handleLogin(event: CustomEvent) {
-    state = states.WAIT_START;
+    game_state.set("wait_start");
     let username = event.detail.username;
     img_src = event.detail.img_src;
-    let prompt = event.detail.prompt;
+    let prompt = event.detail.prompt.toUpperCase();
     my_username.set(username);
     my_prompt.set(prompt);
     users.update((users) => {
@@ -73,7 +63,7 @@
           return users;
         });
         if (new_user.username === $my_username) {
-          state = states.WAIT_START;
+          game_state.set("wait_start");
           console.log("Connected: ", message);
         }
         break;
@@ -103,7 +93,7 @@
         });
         break;
       case "start_game":
-        state = states.DRAW;
+        game_state.set("draw");
         assigned_prompt = message.assigned_prompt;
         break;
       case "picture":
@@ -118,7 +108,7 @@
         pictures.sort();
         console.log(pictures);
         if (pictures.length === $users.size) {
-          state = states.GUESS;
+          game_state.set("guess");
         }
         break;
       case "guessed_prompt":
@@ -162,58 +152,17 @@
   };
 
   function startGame() {
-    websocket?.sendObject({
+    websocket.sendObject({
       type: "start_game",
       assigned_prompt: "",
-    });
-  }
-
-  // called by <Draw/>
-  function sendPicture(message: CustomEvent) {
-    console.log("sendPicture message", message);
-    state = states.WAIT_DRAWERS;
-    websocket?.sendObject({
-      type: "picture",
-      lines: message.detail.lines,
-      prompt: message.detail.prompt,
-      username: $my_username,
-    });
-  }
-
-  // called by <Guess/>
-  function sendVote(message: CustomEvent) {
-    console.log("sendVote message", message);
-    websocket?.sendObject({
-      type: "voted_prompt",
-      voted_username: message.detail,
-      voter_username: $my_username,
-    });
-  }
-
-  // called by <Guess/>
-  function sendGuess(message: CustomEvent) {
-    console.log("sendGuess message", message);
-    websocket?.sendObject({
-      type: "guessed_prompt",
-      prompt: message.detail,
-      guesser_username: $my_username,
-    });
-  }
-
-  // called by <Guess/>
-  function givePoint(message: CustomEvent) {
-    console.log("givePoint message", message);
-    websocket?.sendObject({
-      type: "give_point",
-      receiver_username: message.detail,
     });
   }
 </script>
 
 <div class="container">
-  {#if state === states.LOGIN}
+  {#if $game_state === "login"}
     <TelegramLogin on:login={handleLogin} />
-  {:else if state === states.WAIT_START}
+  {:else if $game_state === "wait_start"}
     <h1 class="title has-text-centered">Waiting for other players</h1>
     <ul>
       {#each user_list as user}
@@ -227,24 +176,18 @@
     >
       Everybody in!
     </button>
-  {:else if state === states.DRAW}
+  {:else if $game_state === "draw"}
     <h1 class="title has-text-centered">Let's draw!</h1>
-    <Draw prompt={assigned_prompt} on:sendPicture={sendPicture} />
-  {:else if state === states.WAIT_DRAWERS}
+    <Draw prompt={assigned_prompt} />
+  {:else if $game_state === "wait_drawers"}
     <h1 class="title has-text-centered">
       Waiting for other players to finish drawing, got:
     </h1>
     {#each pictures as picture}
       <Avatar username={picture.username} />
     {/each}
-  {:else if state === states.GUESS}
-    <Guess
-      bind:this={guessComponent}
-      {pictures}
-      on:sendVote={sendVote}
-      on:sendGuess={sendGuess}
-      on:givePoint={givePoint}
-    />
+  {:else if $game_state === "guess"}
+    <Guess bind:this={guessComponent} {pictures} />
   {:else}
     <h1 class="title has-text-centered">UNKNOWN STATE AAAA</h1>
   {/if}

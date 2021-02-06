@@ -1,13 +1,14 @@
 # TODO
 
+- Fix timing issue in sendGuess("-----")
+- Faster timers in score and lol points
+- Show correct answer
+- Show who got it right in the leaderboard
+- Fix image issue, disallow non-telegram logins, maybe use {@debugger} on store
 - Testing
-- Score phase
-- Loop guess phase for all pictures
-- Use submitted entries
-- Better UI (especially for picking prompts)
-- Funniest entry vote
+- Better UI (especially for picking prompts), paperCSS
+- Music player instead of youtube embed
+- Funniest entry vote (best prompt votes? Best drawing?)
 - Slick animations and everything
-- Allow to re-enter the game after a crash
-- Remove the server: single point of failure
-- Move to a self hosted signal server
+- Allow to re-enter the game after a crash: server store game_state, guess_state, guesses, votes, ...
 - ...

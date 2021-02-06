@@ -1,5 +1,5 @@
 import type { WebSocketMessage } from "./interfaces";
-export class WebSocketConnection {
+class WebSocketConnection {
     onMessage: (message: WebSocketMessage) => void;
     websocket: WebSocket | null;
     constructor() {
@@ -18,11 +18,14 @@ export class WebSocketConnection {
         }
     }
 
+    // TODO maybe async with sendRequest
     sendObject(object: WebSocketMessage) {
         if (this.websocket === null) {
-            console.error("Can't send without websocket");
+            alert("Can't send without websocket!");
             return;
         }
         this.websocket.send(JSON.stringify(object));
     }
 };
+
+export const websocket = new WebSocketConnection();

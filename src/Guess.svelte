@@ -1,10 +1,9 @@
 <script lang="ts">
   import type { Picture, Guess, VotePrompt, User } from "./interfaces";
   import { users, my_username, my_prompt } from "./stores";
+  import { websocket } from "./Websocket";
   import Avatar from "./Avatar.svelte";
   import Canvas from "./Canvas.svelte";
-  import { createEventDispatcher } from "svelte";
-  const dispatch = createEventDispatcher();
   import { tweened } from "svelte/motion";
   export let pictures: Picture[];
   const states = {
@@ -49,7 +48,9 @@
       });
     if (picture.prompt === $my_prompt) {
       guess = "-----";
-      setTimeout(sendGuess, 500);
+      // TODO this causes problems, check you're receiving guesses while in the
+      // right state, otherwise queue them
+      sendGuess();
     }
   }
 
@@ -75,7 +76,11 @@
   }
 
   let sendGuess = function () {
-    dispatch("sendGuess", guess.toUpperCase());
+    websocket.sendObject({
+      type: "guessed_prompt",
+      prompt: guess.toUpperCase(),
+      guesser_username: $my_username,
+    });
     sent_guess = true;
   };
 
@@ -103,13 +108,22 @@
         return users;
       });
     }
-    dispatch("sendVote", voted_for);
+    console.log("sendVote message", voted_for);
+    websocket.sendObject({
+      type: "voted_prompt",
+      voted_username: voted_for,
+      voter_username: $my_username,
+    });
     sent_vote = true;
   };
 
   let givePoint = function (username: string) {
     sent_points = [...sent_points, username];
-    dispatch("givePoint", username);
+    console.log("givePoint to username", username);
+    websocket.sendObject({
+      type: "give_point",
+      receiver_username: username,
+    });
   };
 
   export const onVote = (vote: VotePrompt) => {
@@ -204,7 +218,7 @@
 {:else if state === states.SCORE}
   {#each guesses as t_guess}
     <div class="columns is-multiline half-width">
-      {#if t_guess.guesser_username !== $my_username && t_guess.prompt !== $my_prompt && t_guess.prompt !== picture.prompt && t_guess.prompt !== '-----'}
+      {#if t_guess.guesser_username !== $my_username && t_guess.prompt !== $my_prompt && t_guess.prompt !== picture.prompt && t_guess.prompt !== "-----"}
         <div class="column is-half center-text">{t_guess.prompt}</div>
         <div class="column is-half">
           <button

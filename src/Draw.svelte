@@ -1,9 +1,10 @@
 <script lang="ts">
   import type { Line } from "./interfaces";
   import Canvas from "./Canvas.svelte";
-  import { createEventDispatcher } from "svelte";
-  const dispatch = createEventDispatcher();
   import { tweened } from "svelte/motion";
+  import { my_username, game_state } from "./stores";
+  import { websocket } from "./Websocket";
+
   const tot_time = 121;
   export let prompt: string;
   export let lines: Line[] = [];
@@ -18,8 +19,15 @@
     }
     progress.set(1);
     if (confirm("Send picture?")) {
-      dispatch("sendPicture", { lines: lines, prompt: prompt });
+      console.log("sendPicture:", lines, prompt);
+      websocket.sendObject({
+        type: "picture",
+        lines: lines,
+        prompt: prompt,
+        username: $my_username,
+      });
       already_sent = true;
+      game_state.set("wait_drawers");
     }
   };
   progress.set(1).then(onDone);
