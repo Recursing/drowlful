@@ -1,5 +1,6 @@
 # TODO
 
+- LOL point to real prompt
 - Fix timing issue in sendGuess("-----")
 - Faster timers in score and lol points
 - Show correct answer

@@ -32,7 +32,10 @@
       return;
     }
     picture = pictures.shift()!;
-    guesses = [{ prompt: picture.prompt, guesser_username: picture.username }];
+    guesses.push({
+      prompt: picture.prompt,
+      guesser_username: picture.username,
+    });
     votes = [];
     state = states.WRITE_GUESS;
     sent_guess = picture.username === $my_username;
@@ -140,6 +143,7 @@
   };
 
   function startLeaderboard() {
+    guesses = [];
     state = states.LEADERBOARD;
     sorted_users = [...$users.values()];
     sorted_users.sort(
@@ -147,8 +151,8 @@
     );
     sorted_users = sorted_users;
     progress
-      .set(0.6, { duration: 1000 })
-      .then(() => progress.set(1, { duration: tot_time * 1000 * 0.6 }))
+      .set(0.7, { duration: 1000 })
+      .then(() => progress.set(1, { duration: tot_time * 1000 * 0.3 }))
       .then(startGuessing);
   }
 
@@ -232,6 +236,7 @@
     </div>
   {/each}
 {:else if state === states.LEADERBOARD}
+  <h1 class="is-title has-text-centered">{picture.prompt}</h1>
   <div class="columns is-multiline half-width">
     <div class="column is-half center-text" />
     <div class="column is-one-quarter center-text"><strong>Score</strong></div>
