@@ -136,8 +136,8 @@
     if (votes.length === $users.size) {
       state = states.SCORE;
       progress
-        .set(0.4, { duration: 1000 })
-        .then(() => progress.set(1, { duration: tot_time * 1000 * 0.6 }))
+        .set(0.7, { duration: 1000 })
+        .then(() => progress.set(1, { duration: tot_time * 1000 * 0.3 }))
         .then(startLeaderboard);
     }
   };
