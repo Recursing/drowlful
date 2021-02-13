@@ -1,4 +1,5 @@
 from typing import List, Any, Dict, Tuple
+from pprint import pprint
 import random
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -61,6 +62,7 @@ async def websocket_endpoint(
     try:
         while True:
             data = await websocket.receive_json()
+            pprint(data)
             if "username" in data:
                 assert data["username"] == username
             data["username"] = username
