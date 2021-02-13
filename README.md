@@ -5,7 +5,7 @@
 - Faster timers in score and lol points
 - Show correct answer
 - Show who got it right in the leaderboard
-- Fix image issue, disallow non-telegram logins, maybe use {@debugger} on store
+- Disallow non-telegram logins, maybe use {@debugger} on store
 - Testing
 - Better UI (especially for picking prompts), paperCSS
 - Music player instead of youtube embed

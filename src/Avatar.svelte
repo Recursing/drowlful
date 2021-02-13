@@ -1,7 +1,7 @@
 <script lang="ts">
   import { users } from "./stores";
   export let username: string;
-  let img_src: string | undefined = $users.get(username)?.img_src;
+  $: img_src = $users.get(username)?.img_src;
 </script>
 
 <div>
