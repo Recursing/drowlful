@@ -30,6 +30,11 @@
       return;
     }
     username = user.username || user.first_name + " " + user.last_name;
+    console.log(JSON.stringify(user, null, 2));
+    console.log(JSON.stringify(user, null, 2));
+    console.log(JSON.stringify(user, null, 2));
+    console.log(JSON.stringify(user, null, 2));
+    console.log(JSON.stringify(user, null, 2));
     img_src = user.photo_url || img_src;
     console.log(
       "Logged in as " +
@@ -67,6 +72,7 @@
     window.onTelegramAuth = onTelegramAuth;
   });
 </script>
+
 <div class="field">
   <div class="control is-expanded">
     <input
@@ -110,8 +116,11 @@
   <div class="field column is-narrow">
     <label for="login-button" class="label">&nbsp</label>
     <div class="control">
-      <button id="login-button" on:click={onManualAuth} class="button is-link"
-        >Login</button
+      <button
+        id="login-button"
+        on:click={onManualAuth}
+        class="button is-link"
+        disabled={true}>Login</button
       >
     </div>
   </div>
