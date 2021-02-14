@@ -15,11 +15,13 @@
   }
 
   const default_images = [
-    "https://a.thumbs.redditmedia.com/kIpBoUR8zJLMQlF8azhN-kSBsjVUidHjvZNLuHDONm8.png",
-    "https://abs.twimg.com/sticky/default_profile_images/default_profile_400x400.png",
-    "https://styles.redditmedia.com/t5_2qhr7/styles/communityIcon_zqe9mgigjpi01.png",
-    "https://avatars1.githubusercontent.com/u/6978200",
-    "https://avatars2.githubusercontent.com/u/1506147",
+    "https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/2/28/Pok%C3%A9mon_Bulbasaur_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/5/59/Pok%C3%A9mon_Squirtle_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/a/a5/Pok%C3%A9mon_Charmander_art.png",
+    "https://en.wikipedia.org/wiki/Venusaur#/media/File:Pok%C3%A9mon_Venusaur_art.png",
+    "https://annachromy.com/wp-content/uploads/2020/08/Sisifo-pisa.jpg",
+    "https://en.wikipedia.org/wiki/Meowth#/media/File:Pok%C3%A9mon_Meowth_art.png",
   ];
 
   let img_src = default_images[Math.floor(Math.random() * 5)];
@@ -30,10 +32,6 @@
       return;
     }
     username = user.username || user.first_name + " " + user.last_name;
-    console.log(JSON.stringify(user, null, 2));
-    console.log(JSON.stringify(user, null, 2));
-    console.log(JSON.stringify(user, null, 2));
-    console.log(JSON.stringify(user, null, 2));
     console.log(JSON.stringify(user, null, 2));
     img_src = user.photo_url || img_src;
     console.log(
@@ -116,11 +114,8 @@
   <div class="field column is-narrow">
     <label for="login-button" class="label">&nbsp</label>
     <div class="control">
-      <button
-        id="login-button"
-        on:click={onManualAuth}
-        class="button is-link"
-        disabled={true}>Login</button
+      <button id="login-button" on:click={onManualAuth} class="button is-link"
+        >Login</button
       >
     </div>
   </div>
