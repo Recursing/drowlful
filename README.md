@@ -1,11 +1,17 @@
 # TODO
 
+- Prevent repeated profile images
+- Prevent sending same guess as original or other player
+- Fix scores
+- Server stuff
+- Save all drawings
+- Color palette instead of select element with color names
+- Send on pressing Enter
 - LOL point to real prompt
 - Fix timing issue in sendGuess("-----")
-- Faster timers in score and lol points
-- Show correct answer
-- Show who got it right in the leaderboard
-- Disallow non-telegram logins, maybe use {@debugger} on store
+- Faster timers in score and lol points (add "next" button that everybody needs to press)
+- Show who got it right in the leaderboard, and who wrote what
+- Improve non-telegram logins
 - Testing
 - Better UI (especially for picking prompts), paperCSS
 - Music player instead of youtube embed
