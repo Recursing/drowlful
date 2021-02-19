@@ -24,7 +24,8 @@
     "https://en.wikipedia.org/wiki/Meowth#/media/File:Pok%C3%A9mon_Meowth_art.png",
   ];
 
-  let img_src = default_images[Math.floor(Math.random() * 5)];
+  let img_src =
+    default_images[Math.floor(Math.random() * default_images.length)];
 
   function onTelegramAuth(user: TelegramUser) {
     username = user.username || user.first_name + " " + user.last_name;
