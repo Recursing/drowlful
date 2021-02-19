@@ -62,11 +62,13 @@
 </svg>
 
 {#if editable}
-  <div class="controls">
+  <div class="controls centered-flex">
     <label>
       Width:
       <input type="number" bind:value={cur_line.width} min="1" max="30" />
       <input type="range" bind:value={cur_line.width} min="1" max="30" />
+    </label>
+    <label>
       Color:
       <select bind:value={cur_line.stroke}>
         <option>red</option>
@@ -82,14 +84,14 @@
         <option>gray</option>
         <option>brown</option>
       </select>
-      <button
-        on:click={() => {
-          lines.length > 0 ? (lines = lines.slice(0, lines.length - 1)) : "";
-        }}
-      >
-        undo
-      </button>
     </label>
+    <button
+      on:click={() => {
+        lines.length > 0 ? (lines = lines.slice(0, lines.length - 1)) : "";
+      }}
+    >
+      undo
+    </button>
   </div>
 {/if}
 
@@ -103,9 +105,7 @@
   polyline {
     pointer-events: none;
   }
-  .controls {
-    margin-left: 3em;
-    width: 50%;
-    margin: 0 auto;
+  .controls > * {
+    margin: 1em;
   }
 </style>

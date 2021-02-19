@@ -166,11 +166,11 @@
 </script>
 
 {#if state === states.WRITE_GUESS}
-  <h1 class="is-title has-text-centered">Type your guess for:</h1>
+  <h1 class="has-text-centered">Type your guess for:</h1>
 {:else if state === states.PICK_GUESS}
-  <h1 class="is-title has-text-centered">Pick your guess for:</h1>
+  <h1 class="has-text-centered">Pick your guess for:</h1>
 {:else}
-  <h1 class="is-title has-text-centered">Scores:</h1>
+  <h1 class="has-text-centered">Scores:</h1>
 {/if}
 
 <Canvas lines={picture.lines} editable={false} />
@@ -178,21 +178,25 @@
 {#if state === states.WRITE_GUESS}
   {#if sent_guess}
     <h2 class="has-text-centered">Got guesses:</h2>
-    {#each guesses as guess}
-      <Avatar username={guess.guesser_username} />
-    {/each}
+    <div class="centered-flex">
+      {#each guesses as guess}
+        <Avatar username={guess.guesser_username} />
+      {/each}
+    </div>
   {:else}
-    <div class="field has-addons has-addons-centered">
-      <div class="control is-expanded">
-        <input
-          bind:value={guess}
-          class="input is-large"
-          type="text"
-          placeholder="Your guess"
-          required
-        />
+    <div class="row">
+      <div class="col sm-10">
+        <div class="form-group">
+          <input
+            bind:value={guess}
+            class="input-block"
+            type="text"
+            placeholder="Your guess"
+            required
+          />
+        </div>
       </div>
-      <div class="control">
+      <div class="col sm-2">
         <button
           class="button is-info is-large"
           on:click={sendGuess}
@@ -206,25 +210,37 @@
 {:else if state === states.PICK_GUESS}
   {#if sent_vote}
     <h2 class="has-text-centered">Got votes:</h2>
-    {#each votes as vote}
-      <Avatar username={vote.voter_username} />
-    {/each}
-  {:else}
-    <select bind:value={voted_for}>
-      {#each guesses as t_guess}
-        {#if t_guess.guesser_username !== $my_username}
-          <option value={t_guess.guesser_username}>{t_guess.prompt}</option>
-        {/if}
+    <div class="centered-flex">
+      {#each votes as vote}
+        <Avatar username={vote.voter_username} />
       {/each}
-    </select>
-    <button class="button is-info is-large" on:click={sendVote}>Send!</button>
+    </div>
+  {:else}
+    <div class="row">
+      <div class="col sm-10">
+        <div class="form-group">
+          <select bind:value={voted_for} class="input-block">
+            {#each guesses as t_guess}
+              {#if t_guess.guesser_username !== $my_username}
+                <option value={t_guess.guesser_username}
+                  >{t_guess.prompt}</option
+                >
+              {/if}
+            {/each}
+          </select>
+        </div>
+      </div>
+      <div class="col sm-2">
+        <button class="button" on:click={sendVote}>Send!</button>
+      </div>
+    </div>
   {/if}
 {:else if state === states.SCORE}
   {#each guesses as t_guess}
-    <div class="columns is-multiline half-width">
+    <div class="row">
       {#if t_guess.guesser_username !== $my_username && t_guess.prompt !== $my_prompt && t_guess.prompt !== picture.prompt && t_guess.prompt !== "-----"}
-        <div class="column is-half center-text">{t_guess.prompt}</div>
-        <div class="column is-half">
+        <div class="col sm-6 center-text">{t_guess.prompt}</div>
+        <div class="col sm-6 center-text">
           <button
             class="button"
             on:click|once={() => givePoint(t_guess.guesser_username)}
@@ -236,25 +252,27 @@
     </div>
   {/each}
 {:else if state === states.LEADERBOARD}
-  <h1 class="is-title has-text-centered">{picture.prompt}</h1>
-  <div class="columns is-multiline half-width">
-    <div class="column is-half center-text" />
-    <div class="column is-one-quarter center-text"><strong>Score</strong></div>
-    <div class="column is-one-quarter center-text"><strong>LOLs</strong></div>
+  <h1 class="has-text-centered">{picture.prompt}</h1>
+  <div class="row">
+    <div class="col sm-6 center-text"><strong>User</strong></div>
+    <div class="col sm-3 center-text"><strong>Score</strong></div>
+    <div class="col sm-3 center-text"><strong>LOLs</strong></div>
     {#each sorted_users as user}
-      <div class="column is-half center-text">
-        <Avatar username={user.username} />
+      <div class="col sm-6">
+        <div class="centered-flex">
+          <Avatar username={user.username} />
+        </div>
       </div>
-      <div class="column is-one-quarter center-text">{user.score}</div>
-      <div class="column is-one-quarter center-text">{user.lol_score}</div>
+      <div class="col sm-3 center-text">{user.score}</div>
+      <div class="col sm-3 center-text">{user.lol_score}</div>
     {/each}
   </div>
 {/if}
 <progress
-  class="progress"
-  class:is-success={$progress < 0.5}
-  class:is-warning={$progress >= 0.5 && $progress < 0.8}
-  class:is-danger={$progress >= 0.8}
+  class="progress margin-bottom"
+  class:success={$progress < 0.5}
+  class:warning={$progress >= 0.5 && $progress < 0.8}
+  class:danger={$progress >= 0.8}
   value={$progress}
 />
 <h1 class="has-text-centered">{sec_left}</h1>
@@ -268,17 +286,11 @@
   progress {
     width: 100%;
   }
-  .field {
-    margin: 2em;
-  }
-
-  .half-width {
-    width: 50%;
-    margin: auto;
-  }
-
   .center-text {
     text-align: center;
     margin: auto;
+  }
+  .row {
+    padding-top: 1em;
   }
 </style>

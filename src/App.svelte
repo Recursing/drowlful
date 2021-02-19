@@ -163,33 +163,35 @@
   {#if $game_state === "login"}
     <TelegramLogin on:login={handleLogin} />
   {:else if $game_state === "wait_start"}
-    <h1 class="title has-text-centered">Waiting for other players</h1>
-    <ul>
+    <h1 class="has-text-centered">Waiting for other players</h1>
+    <div class="centered-flex">
       {#each user_list as user}
         <Avatar username={user[0]} />
       {/each}
-    </ul>
+    </div>
     <button
-      class="button"
+      class="button centered-flex"
       on:click|once={startGame}
       disabled={user_list.length < 2}
     >
       Everybody in!
     </button>
   {:else if $game_state === "draw"}
-    <h1 class="title has-text-centered">Let's draw!</h1>
+    <h1 class="has-text-centered">Let's draw!</h1>
     <Draw prompt={assigned_prompt} />
   {:else if $game_state === "wait_drawers"}
-    <h1 class="title has-text-centered">
+    <h1 class="has-text-centered">
       Waiting for other players to finish drawing, got:
     </h1>
-    {#each pictures as picture}
-      <Avatar username={picture.username} />
-    {/each}
+    <div class="centered-flex">
+      {#each pictures as picture}
+        <Avatar username={picture.username} />
+      {/each}
+    </div>
   {:else if $game_state === "guess"}
     <Guess bind:this={guessComponent} {pictures} />
   {:else}
-    <h1 class="title has-text-centered">UNKNOWN STATE AAAA</h1>
+    <h1 class="has-text-centered">UNKNOWN STATE AAAA</h1>
   {/if}
   <iframe
     title="music"
@@ -202,6 +204,5 @@
   .container {
     margin-left: auto;
     margin-right: auto;
-    width: fit-content;
   }
 </style>

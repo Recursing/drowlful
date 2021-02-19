@@ -19,7 +19,7 @@
     "https://upload.wikimedia.org/wikipedia/en/2/28/Pok%C3%A9mon_Bulbasaur_art.png",
     "https://upload.wikimedia.org/wikipedia/en/5/59/Pok%C3%A9mon_Squirtle_art.png",
     "https://upload.wikimedia.org/wikipedia/en/a/a5/Pok%C3%A9mon_Charmander_art.png",
-    "https://en.wikipedia.org/wiki/Venusaur#/media/File:Pok%C3%A9mon_Venusaur_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/2/20/Pok%C3%A9mon_Venusaur_art.png",
     "https://annachromy.com/wp-content/uploads/2020/08/Sisifo-pisa.jpg",
     "https://en.wikipedia.org/wiki/Meowth#/media/File:Pok%C3%A9mon_Meowth_art.png",
   ];
@@ -27,29 +27,11 @@
   let img_src = default_images[Math.floor(Math.random() * 5)];
 
   function onTelegramAuth(user: TelegramUser) {
-    if (!prompt) {
-      alert("Write prompt first!");
-      return;
-    }
     username = user.username || user.first_name + " " + user.last_name;
     console.log(JSON.stringify(user, null, 2));
     img_src = user.photo_url || img_src;
-    console.log(
-      "Logged in as " +
-        user.first_name +
-        " " +
-        user.last_name +
-        " (" +
-        user.id +
-        (user.username ? ", @" + user.username : "") +
-        ")"
-    );
     console.log("Image src: " + img_src);
-    dispatch("login", {
-      username: username,
-      img_src: img_src,
-      prompt: prompt,
-    });
+    onManualAuth();
   }
 
   function onManualAuth() {
@@ -71,52 +53,55 @@
   });
 </script>
 
-<div class="field">
-  <div class="control is-expanded">
-    <input
-      bind:value={prompt}
-      class="input is-large"
-      type="text"
-      placeholder="Your prompt"
-      required
-    />
-  </div>
-</div>
-
-<pre>No telegram fallback, please don't use this</pre>
-<div class="columns">
-  <div class="field column">
-    <label for="username-input" class="label">Username</label>
-    <div class="control">
+<div class="row">
+  <div class="col sm-4">
+    <div class="form-group">
+      <label for="paperInputs2">Username</label>
       <input
         id="username-input"
         bind:value={username}
-        class="input"
+        class="input-block"
         type="text"
-        placeholder="username"
+        placeholder="Username"
         required
       />
     </div>
   </div>
-
-  <div class="field column">
-    <label for="image-url-input" class="label">Image url</label>
-    <div class="control">
+  <div class="col sm-8">
+    <div class="form-group">
+      <label for="paperInputs3">Image url</label>
       <input
         id="image-url-input"
         bind:value={img_src}
-        class="input"
+        class="input-block"
         type="url"
         required
       />
     </div>
   </div>
-  <div class="field column is-narrow">
-    <label for="login-button" class="label">&nbsp</label>
-    <div class="control">
-      <button id="login-button" on:click={onManualAuth} class="button is-link"
-        >Login</button
-      >
+</div>
+
+<div class="row">
+  <div class="col sm-10">
+    <div class="form-group">
+      <input
+        bind:value={prompt}
+        class="input-block"
+        type="text"
+        placeholder="Your prompt"
+        required
+      />
     </div>
   </div>
+  <div class="col">
+    <button id="login-button" on:click={onManualAuth} class="button is-link"
+      >Login</button
+    >
+  </div>
 </div>
+
+<style>
+  button {
+    margin-top: -10px;
+  }
+</style>

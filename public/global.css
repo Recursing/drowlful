@@ -10,72 +10,86 @@ body {
   margin: 0;
   padding: 8px;
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
-a {
-  color: rgb(0, 100, 200);
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-a:visited {
-  color: rgb(0, 80, 160);
-}
-
-label {
-  display: block;
-}
-
-input,
-button,
-select,
-textarea {
-  font-family: inherit;
-  font-size: inherit;
-  padding: 0.4em;
-  margin: 0 0 0.5em 0;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 2px;
-}
-
-input:disabled {
-  color: #ccc;
-}
-
-input[type="range"] {
-  height: 0;
-}
-
-button {
-  color: #333;
-  background-color: #f4f4f4;
-  outline: none;
-}
-
-button:disabled {
-  color: #999;
-}
-
-button:not(:disabled):active {
-  background-color: #ddd;
-}
-
-button:focus {
-  border-color: #666;
+h1 {
+  margin: 0;
 }
 
 #telegram-login-minnybot {
   display: block;
-  margin: 8em auto 8em auto;
+  margin: 4em auto 4em auto;
 }
 
 #music-iframe {
   width: 100%;
   margin-top: 2em;
+}
+
+.has-text-centered {
+  text-align: center;
+}
+
+.centered-flex {
+  display: flex;
+  margin: auto;
+  width: fit-content;
+}
+
+.col {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+progress {
+  -moz-appearance: none;
+  -webkit-appearance: none;
+}
+
+progress::-webkit-progress-bar {
+  background: white;
+}
+
+progress::-webkit-progress-value {
+  transition: background-color 2s;
+}
+
+progress::-moz-progress-bar {
+  transition: background-color 2s;
+}
+
+.progress.is-success::-webkit-progress-value {
+  background-color: #48c78e;
+}
+
+.progress.is-success::-moz-progress-bar {
+  background-color: #48c78e;
+}
+
+.progress.is-success::-ms-fill {
+  background-color: #48c78e;
+}
+
+.progress.is-warning::-webkit-progress-value {
+  background-color: #ffe08a;
+}
+
+.progress.is-warning::-moz-progress-bar {
+  background-color: #ffe08a;
+}
+
+.progress.is-warning::-ms-fill {
+  background-color: #ffe08a;
+}
+
+.progress.is-danger::-webkit-progress-value {
+  background-color: #f14668;
+}
+
+.progress.is-danger::-moz-progress-bar {
+  background-color: #f14668;
+}
+
+.progress.is-danger::-ms-fill {
+  background-color: #f14668;
 }

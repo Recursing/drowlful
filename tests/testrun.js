@@ -23,7 +23,7 @@ const NUM_PLAYERS = 5;
   await Promise.all(pages.map((page) => page.goto(URL)));
 
   for (let [i, page] of pages.entries()) {
-    await page.fill('input[placeholder="username"]', `username${i}`);
+    await page.fill('input[placeholder="Username"]', `username${i}`);
     await page.fill('input[placeholder="Your prompt"]', `prompt${i}`);
     await page.click('text="Login"');
   }
