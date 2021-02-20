@@ -61,7 +61,7 @@ const NUM_PLAYERS = 5;
     await page.click('text="Done!"');
   }
 
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 30; i++) {
     console.log(`Round ${i}`);
     await new Promise((r) => setTimeout(r, 1000));
 

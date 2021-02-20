@@ -21,7 +21,21 @@
     "https://upload.wikimedia.org/wikipedia/en/a/a5/Pok%C3%A9mon_Charmander_art.png",
     "https://upload.wikimedia.org/wikipedia/en/2/20/Pok%C3%A9mon_Venusaur_art.png",
     "https://annachromy.com/wp-content/uploads/2020/08/Sisifo-pisa.jpg",
-    "https://en.wikipedia.org/wiki/Meowth#/media/File:Pok%C3%A9mon_Meowth_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/2/22/Pok%C3%A9mon_Jigglypuff_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/a/aa/Pok%C3%A9mon_Meowth_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/2/2d/Pok%C3%A9mon_Psyduck_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/e/ea/Pok%C3%A9mon_Abra%2C_Kadabra%2C_Alakazam_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/4/4c/Pok%C3%A9mon_Haunter_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/b/bf/Pok%C3%A9mon_Gengar_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/3/3f/Pok%C3%A9mon_Koffing_and_Weezing_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/3/3f/Pok%C3%A9mon_Magikarp_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/a/a9/Pok%C3%A9mon_Eevee_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/4/40/Pok%C3%A9mon_Lapras_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/3/3f/Pok%C3%A9mon_Snorlax_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/1/1a/Pok%C3%A9mon_Chikorita_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/a/aa/Pichu_artwork.png",
+    "https://upload.wikimedia.org/wikipedia/en/5/53/Pok%C3%A9mon_Togepi_art.png",
+    "https://upload.wikimedia.org/wikipedia/en/2/22/Pok%C3%A9mon_Mudkip_art.png",
   ];
 
   let img_src =
