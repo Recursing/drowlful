@@ -1,10 +1,14 @@
 from typing import List, Any, Dict, Tuple
-from pprint import pprint
+import json
 import random
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 app = FastAPI()
+
+from datetime import datetime
+
+logname = f"{int(datetime.now().timestamp())}"
 
 
 class ConnectionManager:
@@ -62,7 +66,10 @@ async def websocket_endpoint(
     try:
         while True:
             data = await websocket.receive_json()
-            pprint(data)
+            with open(logname, "a") as logfile:
+                s = json.dumps(data, indent=2)
+                print(s)
+                print(s, file=logfile)
             if "username" in data:
                 assert data["username"] == username
             data["username"] = username
