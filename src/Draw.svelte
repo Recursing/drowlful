@@ -5,7 +5,7 @@
   import { my_username, game_state } from "./stores";
   import { websocket } from "./Websocket";
 
-  const tot_time = 121;
+  const tot_time = 181;
   export let prompt: string;
   export let lines: Line[] = [];
   const progress = tweened(0, {
