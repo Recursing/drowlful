@@ -2,7 +2,7 @@
   import type { Line } from "./interfaces";
   export let lines: Line[] = [];
   export let editable = true;
-  let cur_line: Line = { stroke: "red", width: 2, points: "" };
+  let cur_line: Line = { stroke: "#ff0000", width: 2, points: "" };
   let is_drawing = false;
 
   function onMouseup() {
@@ -70,20 +70,7 @@
     </label>
     <label>
       Color:
-      <select bind:value={cur_line.stroke}>
-        <option>red</option>
-        <option>orange</option>
-        <option>yellow</option>
-        <option>green</option>
-        <option>cyan</option>
-        <option>blue</option>
-        <option>purple</option>
-        <option>pink</option>
-        <option>white</option>
-        <option>black</option>
-        <option>gray</option>
-        <option>brown</option>
-      </select>
+      <input type="color" bind:value={cur_line.stroke}>
     </label>
     <button
       on:click={() => {
