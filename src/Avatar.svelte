@@ -1,12 +1,11 @@
 <script lang="ts">
-  import { users } from "./stores";
-  export let username: string;
-  $: img_src = $users.get(username)?.img_src;
+  import type { User } from "./interfaces";
+  export let user: User;
 </script>
 
 <div class="card">
-  <img alt="user pic" src={img_src} />
-  <p class="has-text-centered">{username}</p>
+  <img alt="user pic" src={user.img_src} />
+  <p class="has-text-centered">{user.username}</p>
 </div>
 
 <style>

@@ -1,12 +1,23 @@
 <script lang="ts">
-  import type { Picture, Guess, VotePrompt, User } from "./interfaces";
-  import { users, my_username, my_prompt } from "./stores";
-  import { websocket } from "./Websocket";
+  import type { Drawing, Guess, User } from "./interfaces";
+  import { my_username, my_prompt, state } from "./stores";
+  import { socket } from "./Websocket";
   import Avatar from "./Avatar.svelte";
   import Canvas from "./Canvas.svelte";
   import { tweened } from "svelte/motion";
-  export let pictures: Picture[];
-  const states = {
+
+  $: user_list = [...$state.users];
+  function find_user(username: string): User {
+    for (let user of user_list) {
+      if (user.username === username) {
+        return user;
+      }
+    }
+    throw Error("User " + username + " not found");
+  }
+
+  let drawings: Drawing[] = [...$state.drawings];
+  const phases = {
     WRITE_GUESS: "write_guess",
     PICK_GUESS: "pick_guess",
     SCORE: "scoring",
@@ -14,8 +25,8 @@
   };
   const tot_time = 60;
 
-  let picture = pictures[0];
-  let state = states.WRITE_GUESS;
+  let drawing = drawings[0];
+  let guess_phase = phases.WRITE_GUESS;
   let guess = "";
   let sent_guess = false;
   let voted_for: string;
@@ -24,21 +35,22 @@
   let sorted_users: User[] = [];
 
   let guesses: Guess[] = [];
-  let votes: VotePrompt[] = [];
+  let votes: unknown[] = [];
 
   function startGuessing() {
-    if (pictures.length == 0) {
+    if (drawings.length == 0) {
       alert("The end!");
       return;
     }
-    picture = pictures.shift()!;
+    drawing = drawings.shift()!;
     guesses.push({
-      prompt: picture.prompt,
-      guesser_username: picture.username,
+      real_prompt: drawing.prompt,
+      guessed_prompt: drawing.prompt,
+      guesser_username: drawing.username,
     });
     votes = [];
-    state = states.WRITE_GUESS;
-    sent_guess = picture.username === $my_username;
+    guess_phase = phases.WRITE_GUESS;
+    sent_guess = drawing.username === $my_username;
     guess = "";
     sent_points = [];
     progress
@@ -49,7 +61,7 @@
           alert("Please send a guess!");
         }
       });
-    if (picture.prompt === $my_prompt) {
+    if (drawing.prompt === $my_prompt) {
       guess = "-----";
       // TODO this causes problems, check you're receiving guesses while in the
       // right state, otherwise queue them
@@ -58,13 +70,13 @@
   }
 
   function startVoting() {
-    state = states.PICK_GUESS;
+    guess_phase = phases.PICK_GUESS;
     sent_vote = false;
-    if ($my_username === picture.username) {
-      voted_for = picture.username;
+    if ($my_username === drawing.username) {
+      voted_for = drawing.username;
       sendVote();
     }
-    if ($my_prompt === picture.prompt) {
+    if ($my_prompt === drawing.prompt) {
       voted_for = $my_username;
       sendVote();
     }
@@ -79,62 +91,48 @@
   }
 
   let sendGuess = function () {
-    websocket.sendObject({
+    /*websocket.sendObject({
       type: "guessed_prompt",
       prompt: guess.toUpperCase(),
       guesser_username: $my_username,
-    });
+    });*/
     sent_guess = true;
   };
 
   export const onGuess = (new_guess: Guess) => {
     guesses.push(new_guess);
-    guesses.sort((a, b) => a.prompt.localeCompare(b.prompt));
+    guesses.sort((a, b) => a.guessed_prompt.localeCompare(b.guessed_prompt));
     guesses = guesses;
-    if (guesses.length === $users.size) {
+    if (guesses.length === user_list.length) {
       startVoting();
     }
   };
 
   let sendVote = function () {
-    if (picture.username === voted_for && voted_for !== $my_username) {
-      users.update((users) => {
-        let user = users.get($my_username);
-        if (!user) {
-          console.error("MISSING USER");
-          alert("MISSING USER!!!!");
-          return users;
-        }
-        user.score += 1;
-        users.set($my_username, user);
-        console.log([...users]);
-        return users;
-      });
-    }
     console.log("sendVote message", voted_for);
-    websocket.sendObject({
+    /*websocket.sendObject({
       type: "voted_prompt",
       voted_username: voted_for,
       voter_username: $my_username,
-    });
+    });*/
     sent_vote = true;
   };
 
   let givePoint = function (username: string) {
     sent_points = [...sent_points, username];
     console.log("givePoint to username", username);
-    websocket.sendObject({
+    /*websocket.sendObject({
       type: "give_point",
       receiver_username: username,
-    });
+    });*/
   };
 
-  export const onVote = (vote: VotePrompt) => {
+  export const onVote = (vote: unknown) => {
     console.log(vote);
     votes = [...votes, vote];
     console.log(votes);
-    if (votes.length === $users.size) {
-      state = states.SCORE;
+    if (votes.length === user_list.length) {
+      guess_phase = phases.SCORE;
       progress
         .set(0.7, { duration: 1000 })
         .then(() => progress.set(1, { duration: tot_time * 1000 * 0.3 }))
@@ -144,8 +142,8 @@
 
   function startLeaderboard() {
     guesses = [];
-    state = states.LEADERBOARD;
-    sorted_users = [...$users.values()];
+    guess_phase = phases.LEADERBOARD;
+    sorted_users = [...user_list];
     sorted_users.sort(
       (u1, u2) => (u2.score - u1.score) * 100 + u2.lol_score - u1.lol_score
     );
@@ -165,22 +163,22 @@
   startGuessing();
 </script>
 
-{#if state === states.WRITE_GUESS}
+{#if guess_phase === phases.WRITE_GUESS}
   <h1 class="has-text-centered">Type your guess for:</h1>
-{:else if state === states.PICK_GUESS}
+{:else if guess_phase === phases.PICK_GUESS}
   <h1 class="has-text-centered">Pick your guess for:</h1>
 {:else}
   <h1 class="has-text-centered">Scores:</h1>
 {/if}
 
-<Canvas lines={picture.lines} editable={false} />
+<Canvas lines={drawing.lines} editable={false} />
 
-{#if state === states.WRITE_GUESS}
+{#if guess_phase === phases.WRITE_GUESS}
   {#if sent_guess}
     <h2 class="has-text-centered">Got guesses:</h2>
     <div class="centered-flex">
       {#each guesses as guess}
-        <Avatar username={guess.guesser_username} />
+        <Avatar user={find_user(guess.guesser_username)} />
       {/each}
     </div>
   {:else}
@@ -207,12 +205,12 @@
       </div>
     </div>
   {/if}
-{:else if state === states.PICK_GUESS}
+{:else if guess_phase === phases.PICK_GUESS}
   {#if sent_vote}
     <h2 class="has-text-centered">Got votes:</h2>
     <div class="centered-flex">
       {#each votes as vote}
-        <Avatar username={vote.voter_username} />
+        <Avatar user={find_user(vote.voter_username)} />
       {/each}
     </div>
   {:else}
@@ -223,7 +221,7 @@
             {#each guesses as t_guess}
               {#if t_guess.guesser_username !== $my_username}
                 <option value={t_guess.guesser_username}
-                  >{t_guess.prompt}</option
+                  >{t_guess.guessed_prompt}</option
                 >
               {/if}
             {/each}
@@ -235,11 +233,11 @@
       </div>
     </div>
   {/if}
-{:else if state === states.SCORE}
+{:else if guess_phase === phases.SCORE}
   {#each guesses as t_guess}
     <div class="row">
-      {#if t_guess.guesser_username !== $my_username && t_guess.prompt !== $my_prompt && t_guess.prompt !== picture.prompt && t_guess.prompt !== "-----"}
-        <div class="col sm-6 center-text">{t_guess.prompt}</div>
+      {#if t_guess.guesser_username !== $my_username && t_guess.guessed_prompt !== $my_prompt && t_guess.guessed_prompt !== drawing.prompt && t_guess.guessed_prompt !== "-----"}
+        <div class="col sm-6 center-text">{t_guess.guessed_prompt}</div>
         <div class="col sm-6 center-text">
           <button
             class="button"
@@ -251,8 +249,8 @@
       {/if}
     </div>
   {/each}
-{:else if state === states.LEADERBOARD}
-  <h1 class="has-text-centered">{picture.prompt}</h1>
+{:else if guess_phase === phases.LEADERBOARD}
+  <h1 class="has-text-centered">{drawing.prompt}</h1>
   <div class="row">
     <div class="col sm-6 center-text"><strong>User</strong></div>
     <div class="col sm-3 center-text"><strong>Score</strong></div>
@@ -260,7 +258,7 @@
     {#each sorted_users as user}
       <div class="col sm-6">
         <div class="centered-flex">
-          <Avatar username={user.username} />
+          <Avatar {user} />
         </div>
       </div>
       <div class="col sm-3 center-text">{user.score}</div>

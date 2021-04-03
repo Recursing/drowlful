@@ -2,33 +2,34 @@
   import type { Line } from "./interfaces";
   import Canvas from "./Canvas.svelte";
   import { tweened } from "svelte/motion";
-  import { my_username, game_state } from "./stores";
-  import { websocket } from "./Websocket";
+  import { my_username, state } from "./stores";
+  import { socket } from "./Websocket";
 
   const tot_time = 181;
-  export let prompt: string;
-  export let lines: Line[] = [];
+  let prompt = $state.users.filter((u) => u.username === $my_username)[0]
+    .assigned_prompt;
+  let lines: Line[] = [];
   const progress = tweened(0, {
     duration: tot_time * 1000,
   });
   $: sec_left = Math.floor((1 - $progress) * tot_time);
   let already_sent = false;
-  let onDone = function () {
-    if (already_sent) {
+  let onDone = async function () {
+    if (already_sent || !confirm("Send Drawing?")) {
       return;
     }
-    progress.set(1);
-    if (confirm("Send picture?")) {
-      console.log("sendPicture:", lines, prompt);
-      websocket.sendObject({
-        type: "picture",
+    console.log("sendDrawing:", lines, prompt);
+    try {
+      await socket.sendDrawing({
         lines: lines,
         prompt: prompt,
         username: $my_username,
       });
-      already_sent = true;
-      game_state.set("wait_drawers");
+    } catch (error) {
+      alert(error);
     }
+    already_sent = true;
+    progress.set(1);
   };
   progress.set(1).then(onDone);
 </script>
@@ -44,7 +45,7 @@
   class:is-danger={$progress >= 0.8}
   value={$progress}
 />
-<button on:click={onDone} disabled={lines.length === 0}>Done!</button>
+<button on:click|once={onDone} disabled={lines.length === 0}>Done!</button>
 
 <style>
   h1 {

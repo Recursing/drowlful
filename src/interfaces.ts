@@ -1,61 +1,40 @@
 export type User = {
   img_src: string;
-  username: string,
-  score: number,
-  lol_score: number,
-  proposed_prompt: string,
+  username: string;
+  score: number;
+  lol_score: number;
+  proposed_prompt: string;
+  assigned_prompt: string;
+};
+
+export interface State {
+  users: User[];
+  drawings: Drawing[];
+  guesses: Guess[];
+  votes: Vote[];
+  phase: "login" | "draw" | "guess";
 }
 
 export type Line = {
-  stroke: string,
-  width: number,
-  points: string,
-}
+  stroke: string;
+  width: number;
+  points: string;
+};
 
-export type Picture = {
-  prompt: string,
-  username: string,
-  lines: Line[],
-}
+export type Drawing = {
+  prompt: string;
+  username: string;
+  lines: Line[];
+};
 
 export type Guess = {
-  prompt: string,
-  guesser_username: string,
-}
+  real_prompt: string;
+  guessed_prompt: string;
+  guesser_username: string;
+};
 
-interface NewUserMessage {
-  type: "new_user";
-  username: string;
-  img_src: string;
-  proposed_prompt: string;
-}
-
-interface OldUsersMessage {
-  type: "old_users";
-  users: { [key: string]: [string, string] };
-}
-interface StartGameMessage {
-  type: "start_game";
-  assigned_prompt: string;
-}
-
-interface NewPictureMessage extends Picture {
-  type: "picture";
-}
-
-interface GuessPrompt extends Guess {
-  type: "guessed_prompt";
-}
-
-export interface VotePrompt {
-  type: "voted_prompt";
+export type Vote = {
+  real_prompt: string;
+  voted_prompt: string;
   voter_username: string;
-  voted_username: string;
-}
-
-interface GivePoint {
-  type: "give_point";
-  receiver_username: string;
-}
-
-export type WebSocketMessage = NewUserMessage | OldUsersMessage | StartGameMessage | NewPictureMessage | GuessPrompt | VotePrompt | GivePoint;
+};

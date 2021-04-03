@@ -1,31 +1,41 @@
-import type { WebSocketMessage } from "./interfaces";
-class WebSocketConnection {
-    onMessage: (message: WebSocketMessage) => void;
-    websocket: WebSocket | null;
-    constructor() {
-        this.onMessage = (_: WebSocketMessage) => { };
-        this.websocket = null;
-    }
+import type { Drawing, State } from "./interfaces";
+import { state } from "./stores";
+import io from "socket.io-client";
+class Socket {
+  private socket: SocketIOClient.Socket;
+  constructor() {
+    const protocol = document.location.hostname === "localhost" ? "ws" : "wss";
+    this.socket = io(`${protocol}://${document.location.hostname}:8000`);
+    this.socket.on("update state", (new_state: State) => {
+      console.log("NEW STATE!!!");
+      console.log(new_state);
+      state.set(new_state);
+    });
+  }
 
-    setUp(name: string, img_src: string, prompt: string) {
-        const conn_string = `wss://${document.location.host}:8000/ws/${name}?prompt=${prompt}&img=${encodeURIComponent(img_src)}`;
-        console.log(conn_string);
-        this.websocket = new WebSocket(conn_string);
-        this.websocket.onmessage = (event: MessageEvent) => {
-            console.log(event);
-            console.log("got data:", event.data);
-            this.onMessage(JSON.parse(event.data));
-        }
-    }
+  async login(name: string, img_src: string, prompt: string) {
+    this.socket.emit("login", name, img_src, prompt);
+    return new Promise((resolve, reject) => {
+      this.socket.on("ok", resolve);
+      this.socket.on("error", reject);
+    });
+  }
 
-    // TODO maybe async with sendRequest
-    sendObject(object: WebSocketMessage) {
-        if (this.websocket === null) {
-            alert("Can't send without websocket!");
-            return;
-        }
-        this.websocket.send(JSON.stringify(object));
-    }
-};
+  async startGame() {
+    this.socket.emit("start game");
+    return new Promise((resolve, reject) => {
+      this.socket.on("ok", resolve);
+      this.socket.on("error", reject);
+    });
+  }
 
-export const websocket = new WebSocketConnection();
+  async sendDrawing(drawing: Drawing) {
+    this.socket.emit("drawing", drawing);
+    return new Promise((resolve, reject) => {
+      this.socket.on("ok", resolve);
+      this.socket.on("error", reject);
+    });
+  }
+}
+
+export const socket = new Socket();
