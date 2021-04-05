@@ -1,9 +1,14 @@
-import { createServer } from "http";
+import { createServer } from "https";
+import * as fs from "fs";
+
 import { Server, Socket } from "socket.io";
 import { game } from "./game";
 import { Drawing, Guess, Vote } from "./interfaces";
 
-const httpServer = createServer();
+const httpServer = createServer({
+  key: fs.readFileSync("privkey.pem"),
+  cert: fs.readFileSync("cert.pem"),
+});
 
 const io = new Server(httpServer, {
   cors: {
@@ -19,7 +24,7 @@ function updateState() {
 
 function saveState() {
   const fs = require("fs");
-  fs.writeFile(new Date().toISOString(), game.state);
+  fs.writeFileSync(new Date().toISOString(), game.state);
 }
 
 io.on("connection", (socket: Socket) => {

@@ -1,9 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const http_1 = require("http");
+const https_1 = require("https");
+const fs = require("fs");
 const socket_io_1 = require("socket.io");
 const game_1 = require("./game");
-const httpServer = http_1.createServer();
+const httpServer = https_1.createServer({
+    key: fs.readFileSync("privkey.pem"),
+    cert: fs.readFileSync("cert.pem"),
+});
 const io = new socket_io_1.Server(httpServer, {
     cors: {
         origin: ["http://localhost:5000", "https://buonanno.tech"],
@@ -16,7 +20,7 @@ function updateState() {
 }
 function saveState() {
     const fs = require("fs");
-    fs.writeFile(new Date().toISOString(), game_1.game.state);
+    fs.writeFileSync(new Date().toISOString(), game_1.game.state);
 }
 io.on("connection", (socket) => {
     let username = "";
