@@ -1,21 +1,13 @@
 # TODO
 
-- Prevent repeated profile images
-- Prevent sending same guess as original or other player
-- Fix scores
 - Server stuff
-- Save all drawings
-- Color palette instead of select element with color names
-- Send on pressing Enter
-- LOL point to real prompt
-- Fix timing issue in sendGuess("-----")
-- Faster timers in score and lol points (add "next" button that everybody needs to press)
+- Tweak timers in score and lol points
 - Show who got it right in the leaderboard, and who wrote what
-- Improve non-telegram logins
+- Better images
 - Testing
-- Better UI (especially for picking prompts), paperCSS
+- Better UI
 - Music player instead of youtube embed
 - Funniest entry vote (best prompt votes? Best drawing?)
 - Slick animations and everything
-- Allow to re-enter the game after a crash: server store game_state, guess_state, guesses, votes, ...
+- Allow to re-enter the game after a crash / refresh
 - ...

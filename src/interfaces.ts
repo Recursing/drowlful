@@ -12,7 +12,16 @@ export interface State {
   drawings: Drawing[];
   guesses: Guess[];
   votes: Vote[];
-  phase: "login" | "draw" | "guess";
+  lol_votes: Vote[];
+  phase:
+    | "login"
+    | "draw"
+    | "guess"
+    | "vote"
+    | "lol vote"
+    | "leaderboard"
+    | "end";
+  current_prompt: string;
 }
 
 export type Line = {

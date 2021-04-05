@@ -64,20 +64,16 @@
 {#if editable}
   <div class="controls centered-flex">
     <label>
-      Width:
-      <input type="number" bind:value={cur_line.width} min="1" max="30" />
-      <input type="range" bind:value={cur_line.width} min="1" max="30" />
+      Size: {cur_line.width}
+      <input type="range" bind:value={cur_line.width} min="1" max="80" />
     </label>
-    <label>
-      Color:
-      <input type="color" bind:value={cur_line.stroke}>
-    </label>
+    <input type="color" bind:value={cur_line.stroke} />
     <button
       on:click={() => {
         lines.length > 0 ? (lines = lines.slice(0, lines.length - 1)) : "";
       }}
     >
-      undo
+      UNDO
     </button>
   </div>
 {/if}
@@ -94,5 +90,11 @@
   }
   .controls > * {
     margin: 1em;
+  }
+
+  input[type="color"] {
+    padding: 0.2rem;
+    height: 3rem;
+    width: 5rem;
   }
 </style>

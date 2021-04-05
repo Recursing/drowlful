@@ -5,7 +5,8 @@
   import { socket } from "./Websocket";
   import Draw from "./Draw.svelte";
   import Guess from "./Guess.svelte";
-  import { state, my_username, my_prompt } from "./stores";
+  import Progressbar from "./Progressbar.svelte";
+  import { state, my_username } from "./stores";
   $: user_list = [...$state.users];
 
   // TODO move to store, maybe add map
@@ -18,15 +19,13 @@
     throw Error("User " + username + " not found");
   }
 
-  let img_src: string; // TODO maybe move to object store
-
   let guessComponent: Guess;
 
   // Called by <TelegramLogin/>
   async function handleLogin(event: CustomEvent) {
-    let username = event.detail.username;
-    img_src = event.detail.img_src;
-    let prompt = event.detail.prompt.toUpperCase();
+    const username = event.detail.username;
+    const img_src = event.detail.img_src;
+    const prompt = event.detail.prompt.toUpperCase().trim();
     try {
       await socket.login(username, img_src, prompt);
     } catch (error) {
@@ -34,7 +33,6 @@
       return;
     }
     my_username.set(username);
-    my_prompt.set(prompt);
     console.log("Logged in: ", event.detail);
     let tg_login = document.getElementById("telegram-login-minnybot");
     if (tg_login?.parentNode) tg_login.parentNode.removeChild(tg_login);
@@ -56,7 +54,7 @@
     {:else}
       <h1 class="has-text-centered">Waiting for other players</h1>
       <div class="centered-flex">
-        {#each user_list as user}
+        {#each user_list as user (user.username)}
           <Avatar {user} />
         {/each}
       </div>
@@ -74,7 +72,7 @@
         Waiting for other players to finish drawing, got:
       </h1>
       <div class="centered-flex">
-        {#each $state.drawings as drawing}
+        {#each $state.drawings as drawing (drawing.username)}
           <Avatar user={find_user(drawing.username)} />
         {/each}
       </div>
@@ -82,11 +80,15 @@
       <h1 class="has-text-centered">Let's draw!</h1>
       <Draw />
     {/if}
-  {:else if $state.phase === "guess"}
+  {:else if $state.phase === "guess" || $state.phase === "vote" || $state.phase === "lol vote" || $state.phase === "leaderboard"}
     <Guess bind:this={guessComponent} />
+  {:else if $state.phase === "end"}
+    <h1 class="has-text-centered">THE END!</h1>
   {:else}
     <h1 class="has-text-centered">UNKNOWN STATE AAAA!!!! {$state.phase}</h1>
   {/if}
+
+  <Progressbar />
   <!-- <iframe
     title="music"
     id="music-iframe"

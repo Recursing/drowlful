@@ -21,4 +21,9 @@
     margin: 0.5em 0 0 0;
     overflow-wrap: break-word;
   }
+
+  img {
+    height: 100px;
+    object-fit: contain;
+  }
 </style>

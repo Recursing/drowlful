@@ -8,6 +8,8 @@ class ServerState {
         this.phase = "login";
         this.guesses = [];
         this.votes = [];
+        this.lol_votes = [];
+        this.current_prompt = "";
     }
 }
 // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#Sattolo's_algorithm
@@ -60,6 +62,15 @@ class Game {
             throw Error("Shuffling error!!!!");
         }
         this.state.phase = "draw";
+    }
+    findUser(username) {
+        const user = this.state.users.find((u) => u.username === username);
+        if (user === undefined) {
+            console.error("Unknown user " + username);
+            console.error(this.state);
+            throw Error("Unknown user " + username);
+        }
+        return user;
     }
 }
 exports.game = new Game();

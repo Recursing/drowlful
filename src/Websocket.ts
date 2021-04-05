@@ -1,4 +1,4 @@
-import type { Drawing, State } from "./interfaces";
+import type { Drawing, Guess, Vote, State } from "./interfaces";
 import { state } from "./stores";
 import io from "socket.io-client";
 class Socket {
@@ -31,6 +31,30 @@ class Socket {
 
   async sendDrawing(drawing: Drawing) {
     this.socket.emit("drawing", drawing);
+    return new Promise((resolve, reject) => {
+      this.socket.on("ok", resolve);
+      this.socket.on("error", reject);
+    });
+  }
+
+  async sendGuess(guess: Guess) {
+    this.socket.emit("guess", guess);
+    return new Promise((resolve, reject) => {
+      this.socket.on("ok", resolve);
+      this.socket.on("error", reject);
+    });
+  }
+
+  async sendVote(vote: Vote) {
+    this.socket.emit("vote", vote);
+    return new Promise((resolve, reject) => {
+      this.socket.on("ok", resolve);
+      this.socket.on("error", reject);
+    });
+  }
+
+  async sendLOL(vote: Vote) {
+    this.socket.emit("lol vote", vote);
     return new Promise((resolve, reject) => {
       this.socket.on("ok", resolve);
       this.socket.on("error", reject);
