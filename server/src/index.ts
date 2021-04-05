@@ -153,7 +153,9 @@ io.on("connection", (socket: Socket) => {
       return;
     }
     const guess = game.state.guesses.find(
-      (g) => g.guessed_prompt === vote.voted_prompt
+      (g) =>
+        g.guessed_prompt === vote.voted_prompt &&
+        g.real_prompt === vote.real_prompt
     );
     if (guess === undefined && vote.voted_prompt !== vote.real_prompt) {
       error("Voted for unknown prompt " + vote.voted_prompt);
@@ -168,7 +170,9 @@ io.on("connection", (socket: Socket) => {
       user.score += 100;
     } else {
       const drawing = game.state.drawings.find(
-        (d) => d.prompt === vote.voted_prompt
+        (d) =>
+          d.prompt === vote.voted_prompt &&
+          vote.voted_prompt === vote.real_prompt
       );
       if (drawing === undefined) {
         error("Can't find drawing with prompt " + vote.voted_prompt);
@@ -227,7 +231,9 @@ io.on("connection", (socket: Socket) => {
       return;
     }
     const guess = game.state.guesses.find(
-      (g) => g.guessed_prompt === vote.voted_prompt
+      (g) =>
+        g.guessed_prompt === vote.voted_prompt &&
+        g.real_prompt === vote.real_prompt
     );
     if (guess === undefined && vote.voted_prompt !== vote.real_prompt) {
       error("Voted for unknown prompt " + vote.voted_prompt);
@@ -241,7 +247,9 @@ io.on("connection", (socket: Socket) => {
       game.findUser(guess.guesser_username).lol_score += 1;
     } else {
       const voted_user = game.state.users.find(
-        (u) => u.proposed_prompt === vote.voted_prompt
+        (u) =>
+          u.proposed_prompt === vote.voted_prompt &&
+          vote.real_prompt === vote.voted_prompt
       );
       if (voted_user === undefined) {
         error("Can't find user for prompt " + vote.voted_prompt);

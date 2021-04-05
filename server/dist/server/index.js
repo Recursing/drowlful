@@ -122,7 +122,8 @@ io.on("connection", (socket) => {
             error("You have already voted!");
             return;
         }
-        const guess = game_1.game.state.guesses.find((g) => g.guessed_prompt === vote.voted_prompt);
+        const guess = game_1.game.state.guesses.find((g) => g.guessed_prompt === vote.voted_prompt &&
+            g.real_prompt === vote.real_prompt);
         if (guess === undefined && vote.voted_prompt !== vote.real_prompt) {
             error("Voted for unknown prompt " + vote.voted_prompt);
             return;
@@ -136,7 +137,8 @@ io.on("connection", (socket) => {
             user.score += 100;
         }
         else {
-            const drawing = game_1.game.state.drawings.find((d) => d.prompt === vote.voted_prompt);
+            const drawing = game_1.game.state.drawings.find((d) => d.prompt === vote.voted_prompt &&
+                vote.voted_prompt === vote.real_prompt);
             if (drawing === undefined) {
                 error("Can't find drawing with prompt " + vote.voted_prompt);
                 return;
@@ -185,7 +187,8 @@ io.on("connection", (socket) => {
             error("LOL voting on wrong prompt: " + vote.real_prompt);
             return;
         }
-        const guess = game_1.game.state.guesses.find((g) => g.guessed_prompt === vote.voted_prompt);
+        const guess = game_1.game.state.guesses.find((g) => g.guessed_prompt === vote.voted_prompt &&
+            g.real_prompt === vote.real_prompt);
         if (guess === undefined && vote.voted_prompt !== vote.real_prompt) {
             error("Voted for unknown prompt " + vote.voted_prompt);
             return;
@@ -198,7 +201,8 @@ io.on("connection", (socket) => {
             game_1.game.findUser(guess.guesser_username).lol_score += 1;
         }
         else {
-            const voted_user = game_1.game.state.users.find((u) => u.proposed_prompt === vote.voted_prompt);
+            const voted_user = game_1.game.state.users.find((u) => u.proposed_prompt === vote.voted_prompt &&
+                vote.real_prompt === vote.voted_prompt);
             if (voted_user === undefined) {
                 error("Can't find user for prompt " + vote.voted_prompt);
                 return;
