@@ -19,8 +19,7 @@ function updateState() {
     io.emit("update state", game_1.game.state);
 }
 function saveState() {
-    const fs = require("fs");
-    fs.writeFileSync(new Date().toISOString(), game_1.game.state);
+    fs.writeFileSync(new Date().toISOString(), JSON.stringify(game_1.game.state));
 }
 io.on("connection", (socket) => {
     let username = "";
