@@ -1,14 +1,19 @@
-import { createServer } from "https";
+import { createServer as createHttpsServer } from "https";
+import { createServer as createHttpServer } from "http";
+import * as path from "path";
 import * as fs from "fs";
 
 import { Server, Socket } from "socket.io";
 import { game } from "./game";
 import { Drawing, Guess, Vote } from "./interfaces";
 
-const httpServer = createServer({
-  key: fs.readFileSync("privkey.pem"),
-  cert: fs.readFileSync("cert.pem"),
-});
+const HTTPS = path.resolve("").includes("/var/www");
+const httpServer = HTTPS
+  ? createHttpsServer({
+      key: fs.readFileSync("privkey.pem"),
+      cert: fs.readFileSync("cert.pem"),
+    })
+  : createHttpServer();
 
 const io = new Server(httpServer, {
   cors: {
@@ -268,6 +273,9 @@ io.on("connection", (socket: Socket) => {
   socket.on("disconnect", function () {
     console.log(username + " disconnected!!!");
     game.state.users = game.state.users.filter((u) => u.username !== username);
+    game.state.drawings = game.state.drawings.filter(
+      (d) => d.username !== username
+    );
     // TODO add disconnected_users to game.state and allow them to relogin
     updateState();
   });

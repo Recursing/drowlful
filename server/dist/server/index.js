@@ -1,13 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const https_1 = require("https");
+const http_1 = require("http");
+const path = require("path");
 const fs = require("fs");
 const socket_io_1 = require("socket.io");
 const game_1 = require("./game");
-const httpServer = https_1.createServer({
-    key: fs.readFileSync("privkey.pem"),
-    cert: fs.readFileSync("cert.pem"),
-});
+const HTTPS = path.resolve("").includes("/var/www");
+const httpServer = HTTPS
+    ? https_1.createServer({
+        key: fs.readFileSync("privkey.pem"),
+        cert: fs.readFileSync("cert.pem"),
+    })
+    : http_1.createServer();
 const io = new socket_io_1.Server(httpServer, {
     cors: {
         origin: ["http://localhost:5000", "https://buonanno.tech"],
@@ -219,6 +224,7 @@ io.on("connection", (socket) => {
     socket.on("disconnect", function () {
         console.log(username + " disconnected!!!");
         game_1.game.state.users = game_1.game.state.users.filter((u) => u.username !== username);
+        game_1.game.state.drawings = game_1.game.state.drawings.filter((d) => d.username !== username);
         // TODO add disconnected_users to game.state and allow them to relogin
         updateState();
     });

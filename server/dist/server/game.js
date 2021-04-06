@@ -59,7 +59,6 @@ class Game {
         this.state.users.map((u, i) => (u.assigned_prompt = prompts[i]));
         if (this.state.users.some((u) => u.assigned_prompt === u.proposed_prompt)) {
             console.error("Shuffling error!!!!");
-            throw Error("Shuffling error!!!!");
         }
         this.state.phase = "draw";
     }
@@ -68,7 +67,14 @@ class Game {
         if (user === undefined) {
             console.error("Unknown user " + username);
             console.error(this.state);
-            throw Error("Unknown user " + username);
+            return {
+                username: "",
+                score: 0,
+                img_src: "",
+                lol_score: 0,
+                proposed_prompt: "",
+                assigned_prompt: "",
+            };
         }
         return user;
     }

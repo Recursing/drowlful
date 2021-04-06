@@ -8,16 +8,24 @@
   function find_user(username: string): User {
     const user = $state.users.find((u) => u.username === username);
     if (user) return user;
-    throw Error("User " + username + " not found");
+    alert("Error: user " + username + " not found");
+    return {
+      username: "",
+      score: 0,
+      img_src: "",
+      lol_score: 0,
+      proposed_prompt: "",
+      assigned_prompt: "",
+    };
   }
 
   $: my_user = find_user($my_username);
 
   $: current_drawing = $state.drawings.find(
     (d) => d.prompt === $state.current_prompt
-  ) || { lines: [], username: "", prompt: "" };
+  ) ?? { lines: [], username: "", prompt: "" };
 
-  // TODO split in 4 small components for guess/vote/lol/leaderboard
+  // TODO split in 3 small components for guess/vote/lol
 
   let guessed_prompt = "";
   let voted_prompt = "";
@@ -94,12 +102,6 @@
     prompts.sort();
     return prompts;
   }
-
-  function sortedUsers(): User[] {
-    const users = [...$state.users];
-    users.sort((u1, u2) => u2.score + u2.lol_score - u1.score - u1.lol_score);
-    return users;
-  }
 </script>
 
 {#if $state.phase === "guess"}
@@ -116,8 +118,6 @@
   {/if}
 {:else if $state.phase === "lol vote"}
   <h1 class="has-text-centered">Give LOLs!</h1>
-{:else if $state.phase === "leaderboard"}
-  <h1 class="has-text-centered">leaderboard:</h1>
 {:else}
   <h1 class="has-text-centered">UNKNOWN PHASE</h1>
 {/if}
@@ -225,22 +225,6 @@
       </div>
     </div>
   {/each}
-{:else if $state.phase === "leaderboard"}
-  <h1 class="has-text-centered">{$state.current_prompt}</h1>
-  <div class="row">
-    <div class="col sm-6 center-text"><strong>User</strong></div>
-    <div class="col sm-3 center-text"><strong>Score</strong></div>
-    <div class="col sm-3 center-text"><strong>LOLs</strong></div>
-    {#each sortedUsers() as user (user.username)}
-      <div class="col sm-6">
-        <div class="centered-flex">
-          <Avatar {user} />
-        </div>
-      </div>
-      <div class="col sm-3 center-text">{user.score}</div>
-      <div class="col sm-3 center-text">{user.lol_score}</div>
-    {/each}
-  </div>
 {/if}
 
 <style>

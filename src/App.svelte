@@ -7,6 +7,7 @@
   import Guess from "./Guess.svelte";
   import Progressbar from "./Progressbar.svelte";
   import { state, my_username } from "./stores";
+  import Leaderboard from "./Leaderboard.svelte";
   $: user_list = [...$state.users];
 
   // TODO move to store, maybe add map
@@ -16,10 +17,16 @@
         return user;
       }
     }
-    throw Error("User " + username + " not found");
+    alert("Error: user " + username + " not found");
+    return {
+      username: "",
+      score: 0,
+      img_src: "",
+      lol_score: 0,
+      proposed_prompt: "",
+      assigned_prompt: "",
+    };
   }
-
-  let guessComponent: Guess;
 
   // Called by <TelegramLogin/>
   async function handleLogin(event: CustomEvent) {
@@ -80,10 +87,10 @@
       <h1 class="has-text-centered">Let's draw!</h1>
       <Draw />
     {/if}
-  {:else if $state.phase === "guess" || $state.phase === "vote" || $state.phase === "lol vote" || $state.phase === "leaderboard"}
-    <Guess bind:this={guessComponent} />
-  {:else if $state.phase === "end"}
-    <h1 class="has-text-centered">THE END!</h1>
+  {:else if $state.phase === "guess" || $state.phase === "vote" || $state.phase === "lol vote"}
+    <Guess />
+  {:else if $state.phase === "leaderboard" || $state.phase === "end"}
+    <Leaderboard />
   {:else}
     <h1 class="has-text-centered">UNKNOWN STATE AAAA!!!! {$state.phase}</h1>
   {/if}

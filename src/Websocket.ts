@@ -7,7 +7,6 @@ class Socket {
     const protocol = document.location.hostname === "localhost" ? "ws" : "wss";
     this.socket = io(`${protocol}://${document.location.hostname}:8000`);
     this.socket.on("update state", (new_state: State) => {
-      console.log("NEW STATE!!!");
       console.log(new_state);
       state.set(new_state);
     });
