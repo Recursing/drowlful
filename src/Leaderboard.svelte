@@ -23,58 +23,55 @@
   );
 </script>
 
-<Canvas lines={current_drawing.lines} editable={false} />
-
-{#if $state.phase === "leaderboard" || $state.phase === "end"}
-  {#if $state.phase === "end"}
-    <h1 class="has-text-centered">THE END!</h1>
-  {:else}
-    <h1 class="has-text-centered">Leaderboard:</h1>
-  {/if}
-
-  <div class="row">
-    <div class="col sm-2 center-text"><strong>User</strong></div>
-    <div class="col sm-2 center-text"><strong>Score</strong></div>
-    <div class="col sm-2 center-text"><strong>LOLs</strong></div>
-    <div class="col sm-3 center-text">
-      {#if $state.phase === "leaderboard"}<strong>Guessed</strong>{/if}
-    </div>
-    <div class="col sm-3 center-text">
-      {#if $state.phase === "leaderboard"}<strong>Voted</strong>{/if}
-    </div>
-    {#each sortedUsers as user (user.username)}
-      <div class="col sm-2">
-        <div class="centered-flex">
-          <Avatar {user} />
-        </div>
-      </div>
-      <div class="col sm-2 center-text">
-        {user.score}
-        {#if user.score > ($previousScore.get(user.username) ?? 0)}
-          <span>+{user.score - ($previousScore.get(user.username) ?? 0)}</span>
-        {/if}
-      </div>
-      <div class="col sm-2 center-text">
-        {user.lol_score}
-        {#if user.lol_score > ($previousLOLScore.get(user.username) ?? 0)}
-          <span>
-            +{user.lol_score - ($previousLOLScore.get(user.username) ?? 0)}
-          </span>
-        {/if}
-      </div>
-      <div class="col sm-3 center-text">
-        {#if $state.phase === "leaderboard"}
-          {userGuesses.get(user.username) ?? ""}
-        {/if}
-      </div>
-      <div class="col sm-3 center-text">
-        {#if $state.phase === "leaderboard"}
-          {userVotes.get(user.username) ?? ""}
-        {/if}
-      </div>
-    {/each}
-  </div>
+{#if $state.phase === "end"}
+  <h1 class="has-text-centered">THE END!</h1>
+{:else}
+  <Canvas lines={current_drawing.lines} editable={false} />
+  <h1 class="has-text-centered">{$state.current_prompt}</h1>
 {/if}
+
+<div class="row">
+  <div class="col sm-2 center-text"><strong>User</strong></div>
+  <div class="col sm-2 center-text"><strong>Score</strong></div>
+  <div class="col sm-2 center-text"><strong>LOLs</strong></div>
+  <div class="col sm-3 center-text">
+    {#if $state.phase === "leaderboard"}<strong>Guessed</strong>{/if}
+  </div>
+  <div class="col sm-3 center-text">
+    {#if $state.phase === "leaderboard"}<strong>Voted</strong>{/if}
+  </div>
+  {#each sortedUsers as user (user.username)}
+    <div class="col sm-2">
+      <div class="centered-flex">
+        <Avatar {user} />
+      </div>
+    </div>
+    <div class="col sm-2 center-text">
+      {user.score}
+      {#if user.score > ($previousScore.get(user.username) ?? 0)}
+        <span>+{user.score - ($previousScore.get(user.username) ?? 0)}</span>
+      {/if}
+    </div>
+    <div class="col sm-2 center-text">
+      {user.lol_score}
+      {#if user.lol_score > ($previousLOLScore.get(user.username) ?? 0)}
+        <span>
+          +{user.lol_score - ($previousLOLScore.get(user.username) ?? 0)}
+        </span>
+      {/if}
+    </div>
+    <div class="col sm-3 center-text">
+      {#if $state.phase === "leaderboard"}
+        {userGuesses.get(user.username) ?? ""}
+      {/if}
+    </div>
+    <div class="col sm-3 center-text">
+      {#if $state.phase === "leaderboard"}
+        {userVotes.get(user.username) ?? ""}
+      {/if}
+    </div>
+  {/each}
+</div>
 
 <style>
   h1 {
