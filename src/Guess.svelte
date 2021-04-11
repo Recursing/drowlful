@@ -8,7 +8,7 @@
   function find_user(username: string): User {
     const user = $state.users.find((u) => u.username === username);
     if (user) return user;
-    alert("Error: user " + username + " not found");
+    console.error("Error: user " + username + " not found");
     return {
       username: "",
       score: 0,
@@ -102,6 +102,28 @@
     prompts.sort();
     return prompts;
   }
+
+  $: users_without_guess = $state.users.filter(
+    (u) =>
+      u.proposed_prompt !== $state.current_prompt &&
+      u.username !== current_drawing.username &&
+      !$state.guesses.some(
+        (g) =>
+          g.guesser_username === u.username &&
+          g.real_prompt === $state.current_prompt
+      )
+  );
+
+  $: users_without_vote = $state.users.filter(
+    (u) =>
+      u.proposed_prompt !== $state.current_prompt &&
+      u.username !== current_drawing.username &&
+      !$state.votes.some(
+        (g) =>
+          g.voter_username === u.username &&
+          g.real_prompt === $state.current_prompt
+      )
+  );
 </script>
 
 {#if $state.phase === "guess"}
@@ -138,6 +160,12 @@
         <Avatar user={find_user(guess.guesser_username)} />
       {/each}
     </div>
+    <h2 class="has-text-centered">Waiting for:</h2>
+    <div class="centered-flex">
+      {#each users_without_guess as user (user.username)}
+        <Avatar {user} />
+      {/each}
+    </div>
   {:else}
     <div class="row">
       <div class="col sm-10">
@@ -155,11 +183,7 @@
         </div>
       </div>
       <div class="col sm-2">
-        <button
-          class="button is-info is-large"
-          on:click={sendGuess}
-          disabled={guessed_prompt.length === 0}
-        >
+        <button on:click={sendGuess} disabled={guessed_prompt.length === 0}>
           Send!
         </button>
       </div>
@@ -177,6 +201,12 @@
       />
       {#each $state.votes.filter((v) => v.real_prompt === $state.current_prompt) as vote (vote.voter_username)}
         <Avatar user={find_user(vote.voter_username)} />
+      {/each}
+    </div>
+    <h2 class="has-text-centered">Waiting for:</h2>
+    <div class="centered-flex">
+      {#each users_without_vote as user (user.username)}
+        <Avatar {user} />
       {/each}
     </div>
   {:else}
@@ -201,9 +231,7 @@
         {/each}
       </div>
       <div class="col sm-2 center-text">
-        <button class="button" on:click={sendVote} disabled={!voted_prompt}
-          >Send!</button
-        >
+        <button on:click={sendVote} disabled={!voted_prompt}> Send! </button>
       </div>
     </div>
   {/if}
@@ -213,15 +241,16 @@
       <div class="col sm-6 center-text">{prompt}</div>
       <div class="col sm-6 center-text">
         <button
-          class="button"
           on:click|once={async () => await sendLOL(prompt)}
           disabled={$state.lol_votes.some(
             (v) =>
               v.voter_username === $my_username &&
               v.real_prompt === $state.current_prompt &&
               v.voted_prompt === prompt
-          )}>LOL point</button
+          )}
         >
+          LOL point
+        </button>
       </div>
     </div>
   {/each}
@@ -232,6 +261,10 @@
     font-size: 4em;
     color: red;
     font-weight: 100;
+  }
+
+  h2 {
+    margin: 0;
   }
   .center-text {
     text-align: center;

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { state, my_username } from "./stores";
 
   import { tweened } from "svelte/motion";
@@ -56,25 +57,27 @@
     );
   }
 
-  state.subscribe((new_state) => {
-    if (current_phase === new_state.phase) {
-      return;
-    }
-    if (new_state.phase === "draw") {
-      startTimer(DRAW_TIME, "Please send your drawing!", hasNotSentDrawing);
-    } else if (new_state.phase === "guess") {
-      startTimer(GUESS_TIME, "Please send your guess!", hasNotSentGuess);
-    } else if (new_state.phase === "vote") {
-      startTimer(VOTE_TIME, "Please send your vote!", hasNotSentVote);
-    } else if (new_state.phase === "lol vote") {
-      startTimer(LOL_TIME);
-    } else if (
-      new_state.phase === "leaderboard" &&
-      current_phase !== "leaderboard"
-    ) {
-      startTimer(LEADERBOARD_TIME);
-    }
-    current_phase = new_state.phase;
+  onMount(async () => {
+    state.subscribe((new_state) => {
+      if (current_phase === new_state.phase) {
+        return;
+      }
+      if (new_state.phase === "draw") {
+        startTimer(DRAW_TIME, "Please send your drawing!", hasNotSentDrawing);
+      } else if (new_state.phase === "guess") {
+        startTimer(GUESS_TIME, "Please send your guess!", hasNotSentGuess);
+      } else if (new_state.phase === "vote") {
+        startTimer(VOTE_TIME, "Please send your vote!", hasNotSentVote);
+      } else if (new_state.phase === "lol vote") {
+        startTimer(LOL_TIME);
+      } else if (
+        new_state.phase === "leaderboard" &&
+        current_phase !== "leaderboard"
+      ) {
+        startTimer(LEADERBOARD_TIME);
+      }
+      current_phase = new_state.phase;
+    });
   });
 </script>
 

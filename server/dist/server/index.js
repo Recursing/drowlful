@@ -19,12 +19,15 @@ const io = new socket_io_1.Server(httpServer, {
         methods: ["GET", "POST"],
     },
 });
+function saveState(fname) {
+    fs.writeFileSync(fname, JSON.stringify(game_1.game.state));
+}
+let log_num = 0;
 function updateState() {
     console.log(game_1.game.state);
     io.emit("update state", game_1.game.state);
-}
-function saveState() {
-    fs.writeFileSync(new Date().toISOString(), JSON.stringify(game_1.game.state));
+    saveState(log_num + ".log.json");
+    log_num = (log_num + 1) % 20;
 }
 io.on("connection", (socket) => {
     let username = "";
@@ -36,8 +39,32 @@ io.on("connection", (socket) => {
         socket.emit("error", msg);
     }
     socket.on("login", (name, img_src, prompt) => {
-        console.log(`logged in: ${name} ${img_src} ${prompt}`);
+        console.log(`logging in: ${name} ${img_src} ${prompt}`);
         const error = game_1.game.login(name, img_src, prompt);
+        if (error) {
+            socket.emit("error", error);
+        }
+        else {
+            username = name;
+            socket.emit("ok");
+            updateState();
+        }
+    });
+    socket.on("relogin", (name) => {
+        console.log(`relogin: ${name}`);
+        const error = game_1.game.relogin(name);
+        if (error) {
+            socket.emit("error", error);
+        }
+        else {
+            username = name;
+            socket.emit("ok");
+            updateState();
+        }
+    });
+    socket.on("late login", (name, img_src) => {
+        console.log(`late login: ${name} ${img_src}`);
+        const error = game_1.game.late_login(name, img_src);
         if (error) {
             socket.emit("error", error);
         }
@@ -66,6 +93,10 @@ io.on("connection", (socket) => {
             .replace(/[.!?]$/, "");
         if (game_1.game.state.phase !== "draw") {
             error("Wrong game phase for drawing: " + game_1.game.state.phase);
+            return;
+        }
+        if (game_1.game.state.drawings.some((d) => d.username === drawing.username)) {
+            error("I already have a drawing from: " + drawing.username);
             return;
         }
         game_1.game.state.drawings.push(drawing);
@@ -168,7 +199,7 @@ io.on("connection", (socket) => {
                 setTimeout(() => {
                     if (next_drawing === undefined) {
                         game_1.game.state.phase = "end";
-                        saveState();
+                        saveState(new Date().toISOString());
                     }
                     else {
                         game_1.game.state.phase = "guess";
@@ -223,11 +254,13 @@ io.on("connection", (socket) => {
     });
     socket.on("disconnect", function () {
         console.log(username + " disconnected!!!");
-        game_1.game.state.users = game_1.game.state.users.filter((u) => u.username !== username);
-        game_1.game.state.drawings = game_1.game.state.drawings.filter((d) => d.username !== username);
+        if (game_1.game.state.phase === "login") {
+            game_1.game.state.users = game_1.game.state.users.filter((u) => u.username !== username);
+        }
         // TODO add disconnected_users to game.state and allow them to relogin
         updateState();
     });
+    socket.emit("update state", game_1.game.state);
 });
 httpServer.listen(8000, () => {
     console.log("Listening on *:8000");

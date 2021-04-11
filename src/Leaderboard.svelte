@@ -48,13 +48,13 @@
     </div>
     <div class="col sm-2 center-text">
       {user.score}
-      {#if user.score > ($previousScore.get(user.username) ?? 0)}
+      {#if user.score > ($previousScore.get(user.username) ?? 0) && $state.phase === "leaderboard"}
         <span>+{user.score - ($previousScore.get(user.username) ?? 0)}</span>
       {/if}
     </div>
     <div class="col sm-2 center-text">
       {user.lol_score}
-      {#if user.lol_score > ($previousLOLScore.get(user.username) ?? 0)}
+      {#if user.lol_score > ($previousLOLScore.get(user.username) ?? 0) && $state.phase === "leaderboard"}
         <span>
           +{user.lol_score - ($previousLOLScore.get(user.username) ?? 0)}
         </span>
@@ -62,7 +62,13 @@
     </div>
     <div class="col sm-3 center-text">
       {#if $state.phase === "leaderboard"}
-        {userGuesses.get(user.username) ?? ""}
+        {#if $state.current_prompt === user.assigned_prompt}
+          <span>ARTIST</span>
+        {:else if $state.current_prompt === user.proposed_prompt}
+          <span>WRITER</span>
+        {:else}
+          {userGuesses.get(user.username) ?? ""}
+        {/if}
       {/if}
     </div>
     <div class="col sm-3 center-text">

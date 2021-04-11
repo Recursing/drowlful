@@ -27,6 +27,9 @@ class Game {
         this.state = new ServerState();
     }
     login(name, img_src, prompt) {
+        if (this.state.phase !== "login") {
+            return `Wrong phase to login: ${this.state.phase}`;
+        }
         for (let user of this.state.users) {
             if (user.username === name) {
                 return `${name} name is taken, choose a different one`;
@@ -42,6 +45,36 @@ class Game {
             username: name,
             img_src: img_src,
             proposed_prompt: prompt,
+            assigned_prompt: "",
+            score: 0,
+            lol_score: 0,
+        });
+    }
+    relogin(name) {
+        if (this.state.phase === "login") {
+            return "Cannot relogin in login phase";
+        }
+        if (!this.state.users.some((u) => u.username === name)) {
+            return `Cannot relogin as ${name}, user not found`;
+        }
+    }
+    late_login(name, img_src) {
+        if (this.state.phase === "login") {
+            return "Cannot late login in login phase";
+        }
+        if (this.state.phase === "draw") {
+            return "Cannot late login in draw phase";
+        }
+        if (this.state.users.some((u) => u.username === name)) {
+            return `Cannot late login as ${name}, username taken`;
+        }
+        if (this.state.users.some((u) => u.img_src === img_src)) {
+            return `Cannot late login, image taken`;
+        }
+        this.state.users.push({
+            username: name,
+            img_src: img_src,
+            proposed_prompt: "",
             assigned_prompt: "",
             score: 0,
             lol_score: 0,

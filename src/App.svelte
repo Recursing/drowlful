@@ -28,23 +28,6 @@
     };
   }
 
-  // Called by <TelegramLogin/>
-  async function handleLogin(event: CustomEvent) {
-    const username = event.detail.username;
-    const img_src = event.detail.img_src;
-    const prompt = event.detail.prompt.toUpperCase().trim();
-    try {
-      await socket.login(username, img_src, prompt);
-    } catch (error) {
-      alert(error);
-      return;
-    }
-    my_username.set(username);
-    console.log("Logged in: ", event.detail);
-    let tg_login = document.getElementById("telegram-login-minnybot");
-    if (tg_login?.parentNode) tg_login.parentNode.removeChild(tg_login);
-  }
-
   async function startGame() {
     try {
       await socket.startGame();
@@ -55,24 +38,22 @@
 </script>
 
 <div class="container">
-  {#if $state.phase === "login"}
-    {#if $my_username === ""}
-      <TelegramLogin on:login={handleLogin} />
-    {:else}
-      <h1 class="has-text-centered">Waiting for other players</h1>
-      <div class="centered-flex">
-        {#each user_list as user (user.username)}
-          <Avatar {user} />
-        {/each}
-      </div>
-      <button
-        class="button centered-flex"
-        on:click={startGame}
-        disabled={user_list.length < 4}
-      >
-        Everybody in!
-      </button>
-    {/if}
+  {#if $my_username === ""}
+    <TelegramLogin />
+  {:else if $state.phase === "login"}
+    <h1 class="has-text-centered">Waiting for other players</h1>
+    <div class="centered-flex">
+      {#each user_list as user (user.username)}
+        <Avatar {user} />
+      {/each}
+    </div>
+    <button
+      class="centered-flex"
+      on:click={startGame}
+      disabled={user_list.length < 4}
+    >
+      Everybody in!
+    </button>
   {:else if $state.phase === "draw"}
     {#if $state.drawings.some((d) => d.username === $my_username)}
       <h1 class="has-text-centered">
@@ -81,6 +62,12 @@
       <div class="centered-flex">
         {#each $state.drawings as drawing (drawing.username)}
           <Avatar user={find_user(drawing.username)} />
+        {/each}
+      </div>
+      <h1 class="has-text-centered">Waiting for:</h1>
+      <div class="centered-flex">
+        {#each $state.users.filter((u) => !$state.drawings.some((d) => d.username === u.username)) as user (user.username)}
+          <Avatar {user} />
         {/each}
       </div>
     {:else}
@@ -95,7 +82,9 @@
     <h1 class="has-text-centered">UNKNOWN STATE AAAA!!!! {$state.phase}</h1>
   {/if}
 
-  <Progressbar />
+  {#if $my_username !== ""}
+    <Progressbar />
+  {/if}
   <!-- <iframe
     title="music"
     id="music-iframe"

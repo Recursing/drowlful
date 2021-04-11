@@ -59,6 +59,22 @@ class Socket {
       this.socket.on("error", reject);
     });
   }
+
+  async relogin(name: string) {
+    this.socket.emit("relogin", name);
+    return new Promise((resolve, reject) => {
+      this.socket.on("ok", resolve);
+      this.socket.on("error", reject);
+    });
+  }
+
+  async late_login(name: string, img_src: string) {
+    this.socket.emit("late login", name, img_src);
+    return new Promise((resolve, reject) => {
+      this.socket.on("ok", resolve);
+      this.socket.on("error", reject);
+    });
+  }
 }
 
 export const socket = new Socket();
