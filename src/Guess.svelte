@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type { User } from "./interfaces";
+  import type { User, Line } from "./interfaces";
+  import { tweened } from "svelte/motion";
   import { my_username, state } from "./stores";
   import { socket } from "./Websocket";
   import Avatar from "./Avatar.svelte";
@@ -21,7 +22,7 @@
 
   $: my_user = find_user($my_username);
 
-  $: current_drawing = $state.drawings.find(
+  const current_drawing = $state.drawings.find(
     (d) => d.prompt === $state.current_prompt
   ) ?? { lines: [], username: "", prompt: "" };
 
@@ -124,6 +125,42 @@
           g.real_prompt === $state.current_prompt
       )
   );
+
+  const tween_value = tweened(0);
+  tween_value.set(1, { duration: 10000 });
+
+  let tweened_lines: Line[] = [];
+
+  const total_points = current_drawing.lines
+    .map((l) => l.points.length)
+    .reduce((a, b) => a + b, 0);
+
+  function updateTweenedLines(value: number, lines: Line[]) {
+    tweened_lines = [];
+    let points_left = Math.floor(value * total_points);
+    for (let line of lines) {
+      if (line.points.length <= points_left) {
+        tweened_lines.push(line);
+        points_left -= line.points.length;
+      } else {
+        while (
+          line.points[points_left] !== " " &&
+          points_left < line.points.length
+        ) {
+          points_left += 1;
+        }
+        tweened_lines.push({
+          points: line.points.slice(0, points_left),
+          width: line.width,
+          stroke: line.stroke,
+        });
+        break;
+      }
+    }
+    tweened_lines = tweened_lines;
+  }
+
+  $: updateTweenedLines($tween_value, current_drawing.lines);
 </script>
 
 {#if $state.phase === "guess"}
@@ -144,7 +181,7 @@
   <h1 class="has-text-centered">UNKNOWN PHASE</h1>
 {/if}
 
-<Canvas lines={current_drawing.lines} editable={false} />
+<Canvas lines={tweened_lines} editable={false} />
 
 {#if $state.phase === "guess"}
   {#if sent_guess}
