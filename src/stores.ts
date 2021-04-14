@@ -13,6 +13,8 @@ export const state: Writable<State> = writable({
 });
 
 export let my_username = writable("");
+let current_username = "";
+my_username.subscribe((new_username) => (current_username = new_username));
 
 state.subscribe((new_state) => {
   if (new_state.phase === "guess") {
@@ -24,6 +26,9 @@ state.subscribe((new_state) => {
     }
     previousScore.set(previousScores);
     previousLOLScore.set(previousScores);
+  }
+  if (!new_state.users.some((u) => u.username === current_username)) {
+    my_username.set("");
   }
 });
 
