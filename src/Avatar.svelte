@@ -11,6 +11,7 @@
 <style>
   div {
     width: 120px;
+    min-width: 120px;
     border: 1px solid #aaa;
     border-radius: 5px;
     padding: 0.5em;
