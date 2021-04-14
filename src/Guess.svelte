@@ -324,6 +324,7 @@
     border-top-right-radius: 515px 1225px;
     border: 2px solid #41403e;
     box-shadow: 15px 28px 15px -5px rgb(0 0 0 / 7%);
+    transition: all 235ms ease 0s;
   }
 
   .row-selected {
