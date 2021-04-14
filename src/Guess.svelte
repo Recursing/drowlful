@@ -250,7 +250,11 @@
     <div class="row">
       <div class="col sm-10 center-text">
         {#each possiblePrompts() as prompt}
-          <div class="row">
+          <div
+            class="row voterow"
+            on:click={() => (voted_prompt = prompt)}
+            class:row-selected={voted_prompt === prompt}
+          >
             <div class="col sm-1">
               <input
                 id={prompt}
@@ -311,6 +315,22 @@
     padding-top: 1em;
     max-width: 800px;
   }
+
+  .voterow {
+    padding-top: 0.3em;
+    border-bottom-left-radius: 515px 1255px;
+    border-bottom-right-radius: 1225px 515px;
+    border-top-left-radius: 1255px 515px;
+    border-top-right-radius: 515px 1225px;
+    border: 2px solid #41403e;
+    box-shadow: 15px 28px 15px -5px rgb(0 0 0 / 7%);
+  }
+
+  .row-selected {
+    transform: translate3d(0, 2px, 0);
+    box-shadow: 5px 14px 10px -5px rgb(0 0 0 / 7%);
+  }
+
   label {
     overflow-wrap: break-word;
   }
