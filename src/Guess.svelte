@@ -323,15 +323,25 @@
     border-top-left-radius: 1255px 515px;
     border-top-right-radius: 515px 1225px;
     border: 2px solid #41403e;
-    box-shadow: 15px 28px 15px -5px rgb(0 0 0 / 7%);
-    transition: all 235ms ease 0s;
+    background-color: white;
+    box-shadow: 15px 28px 25px -13px rgb(0 0 0 / 20%);
+    transition: all 235ms ease-in-out 0ms;
   }
 
-  .row-selected {
+  .voterow:hover {
     transform: translate3d(0, 2px, 0);
-    box-shadow: 5px 14px 10px -5px rgb(0 0 0 / 7%);
+    box-shadow: 2px 8px 8px -5px rgb(0 0 0 / 30%);
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: black;
   }
 
+  .row-selected,
+  .row-selected:hover {
+    transform: translate3d(0, 4px, 0);
+    background-color: rgba(220, 220, 255, 0.1);
+    box-shadow: 0px 2px 3px 1px rgb(0 0 0 / 40%);
+    border-color: black;
+  }
   label {
     overflow-wrap: break-word;
   }

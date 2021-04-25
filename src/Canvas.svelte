@@ -35,6 +35,17 @@
     }
     cur_line.points += " " + ev.offsetX + "," + ev.offsetY;
   }
+
+  function calcWidth(width: number) {
+    return (
+      width +
+      Math.max(0, width - 10) +
+      Math.max(0, width - 20) +
+      Math.max(0, width - 30)
+    );
+  }
+  let slider_value = 2;
+  $: cur_line.width = calcWidth(slider_value);
 </script>
 
 <svg
@@ -65,7 +76,7 @@
   <div class="controls centered-flex">
     <label>
       Size: {cur_line.width}
-      <input type="range" bind:value={cur_line.width} min="1" max="80" />
+      <input type="range" bind:value={slider_value} min="1" max="40" />
     </label>
     <input type="color" bind:value={cur_line.stroke} />
     <button
@@ -96,5 +107,10 @@
     padding: 0.2rem;
     height: 3rem;
     width: 5rem;
+  }
+
+  input[type="range"] {
+    box-shadow: none;
+    width: 300px;
   }
 </style>

@@ -5,6 +5,17 @@ body {
   height: 100%;
 }
 
+input {
+  box-shadow: 15px 28px 25px -18px rgb(0 0 0 / 20%);
+  transition: all 235ms ease-in-out 0ms;
+}
+
+input:focus,
+input:hover {
+  transform: translate3d(0, 2px, 0);
+  box-shadow: 2px 8px 8px -5px rgb(0 0 0 / 30%);
+}
+
 body {
   color: #333;
   margin: 0;
