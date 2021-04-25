@@ -78,7 +78,24 @@
       Size: {cur_line.width}
       <input type="range" bind:value={slider_value} min="1" max="40" />
     </label>
-    <input type="color" bind:value={cur_line.stroke} />
+    <label>
+      Color: {cur_line.stroke}
+      <input type="color" bind:value={cur_line.stroke} />
+      <select bind:value={cur_line.stroke}>
+        <option value="#FF0000">red</option>
+        <option value="#FFA500">orange</option>
+        <option value="#ffff00">yellow</option>
+        <option value="#008000">green</option>
+        <option value="#00ffff">cyan</option>
+        <option value="#0000ff">blue</option>
+        <option value="#800080">purple</option>
+        <option value="#ffc0cb">pink</option>
+        <option value="#ffffff">white</option>
+        <option value="#000000">black</option>
+        <option value="#808080">gray</option>
+        <option value="#8b4513">saddlebrown</option>
+      </select>
+    </label>
     <button
       on:click={() => {
         lines.length > 0 ? (lines = lines.slice(0, lines.length - 1)) : "";
