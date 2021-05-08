@@ -3,13 +3,6 @@
   import { socket } from "./Websocket";
   import { state, my_username } from "./stores";
 
-  state.subscribe((new_state) => {
-    while (new_state.users.some((u) => u.img_src == img_src)) {
-      img_src =
-        default_images[Math.floor(Math.random() * default_images.length)];
-    }
-  });
-
   let username = "";
   let prompt = "";
 
@@ -38,6 +31,13 @@
 
   let img_src =
     default_images[Math.floor(Math.random() * default_images.length)];
+
+  state.subscribe((new_state) => {
+    while (new_state.users.some((u) => u.img_src == img_src)) {
+      img_src =
+        default_images[Math.floor(Math.random() * default_images.length)];
+    }
+  });
 
   async function onTelegramAuth(user: TelegramUser) {
     username = user.username || user.first_name + " " + user.last_name;

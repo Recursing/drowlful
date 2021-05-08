@@ -1,8 +1,14 @@
 <script lang="ts">
-  import type { Line } from "./interfaces";
-  export let lines: Line[] = [];
+  import type { Shape } from "./interfaces";
+  export let shapes: Shape[] = [];
   export let editable = true;
-  let cur_line: Line = { stroke: "#ff0000", width: 2, points: "" };
+  let cur_shape: Shape = {
+    type: "polyline",
+    stroke: "#ff0000",
+    width: 2,
+    points: [],
+    fill: false,
+  };
   let is_drawing = false;
 
   function onMouseup() {
@@ -10,30 +16,68 @@
       return;
     }
     is_drawing = false;
-    if (cur_line.points.split(" ").length < 2) {
-      return;
+    switch (cur_shape.type) {
+      case "polyline":
+        if (cur_shape.points.length < 2) {
+          return;
+        }
+        break;
+      case "ellipse":
+        if (cur_shape.y1 === cur_shape.y2 || cur_shape.x1 === cur_shape.x2) {
+          return;
+        }
+        break;
     }
-    lines.push({
-      stroke: cur_line.stroke,
-      width: cur_line.width,
-      points: cur_line.points,
-    });
-    lines = lines;
-    cur_line.points = "";
+    shapes.push({ ...cur_shape });
+    shapes = shapes;
   }
 
-  function onMousedown() {
+  function onMousedown(ev: MouseEvent) {
     if (!editable) {
       return;
     }
     is_drawing = true;
+    switch (cur_shape.type) {
+      case "polyline":
+        cur_shape.points = [[ev.offsetX, ev.offsetY]];
+        break;
+      case "ellipse":
+        cur_shape.y1 = cur_shape.y2 = ev.offsetY;
+        cur_shape.x1 = cur_shape.x2 = ev.offsetX;
+        break;
+    }
   }
 
   function onMousemove(ev: MouseEvent) {
     if (!is_drawing) {
       return;
     }
-    cur_line.points += " " + ev.offsetX + "," + ev.offsetY;
+    switch (cur_shape.type) {
+      case "polyline":
+        if (ev.shiftKey) {
+          cur_shape.points = [cur_shape.points[0], [ev.offsetX, ev.offsetY]];
+        } else {
+          cur_shape.points.push([ev.offsetX, ev.offsetY]);
+          cur_shape.points = cur_shape.points;
+        }
+        break;
+      case "ellipse":
+        cur_shape.y2 = ev.offsetY;
+        cur_shape.x2 = ev.offsetX;
+        break;
+    }
+  }
+
+  function onKeydown(ev: KeyboardEvent) {
+    if (ev.key === "Alt") {
+      cur_shape.fill = true;
+    }
+  }
+
+  function onKeyup(ev: KeyboardEvent) {
+    if (ev.key === "Alt") {
+      cur_shape.fill = false;
+    }
   }
 
   function calcWidth(width: number) {
@@ -45,8 +89,10 @@
     );
   }
   let slider_value = 2;
-  $: cur_line.width = calcWidth(slider_value);
+  $: cur_shape.width = calcWidth(slider_value);
 </script>
+
+<svelte:window on:keydown={onKeydown} on:keyup={onKeyup} />
 
 <svg
   on:mousemove={onMousemove}
@@ -56,32 +102,66 @@
   width="800"
   height="600"
 >
-  {#each lines as { stroke, width, points }}
-    <polyline
-      style="fill: none; stroke: {stroke}; stroke-width: {width}"
-      {points}
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />
+  {#each is_drawing ? [...shapes, cur_shape] : shapes as shape}
+    {#if shape.type === "polyline"}
+      <polyline
+        style="fill: {shape.fill
+          ? shape.stroke
+          : 'none'}; stroke: {shape.stroke}; stroke-width: {shape.width}"
+        points={shape.points.map(([x, y]) => `${x},${y}`).join(" ")}
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    {:else if shape.type === "ellipse"}
+      <ellipse
+        style="fill: {shape.fill
+          ? shape.stroke
+          : 'none'}; stroke: {shape.stroke}; stroke-width: {shape.width}"
+        cx={(shape.x1 + shape.x2) / 2}
+        cy={(shape.y1 + shape.y2) / 2}
+        rx={Math.abs(shape.x1 - shape.x2) / 2}
+        ry={Math.abs(shape.y1 - shape.y2) / 2}
+      />
+    {/if}
   {/each}
-  <polyline
-    style="fill: none; stroke: {cur_line.stroke}; stroke-width: {cur_line.width}"
-    points={cur_line.points}
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
 </svg>
 
 {#if editable}
   <div class="controls centered-flex">
+    <div>
+      <label>
+        Size: {cur_shape.width}
+        <input type="range" bind:value={slider_value} min="1" max="40" />
+      </label>
+      <label>
+        <input
+          id="fill_checkbox"
+          type="checkbox"
+          bind:checked={cur_shape.fill}
+        />
+        <span>Fill: {cur_shape.fill}</span>
+      </label>
+      <div>
+        <input
+          id="polyline"
+          type="radio"
+          bind:group={cur_shape.type}
+          value="polyline"
+        />
+        <label for="polyline">Line</label>
+        <input
+          id="ellipse"
+          type="radio"
+          bind:group={cur_shape.type}
+          value="ellipse"
+        />
+        <label for="ellipse">Ellipse</label>
+      </div>
+    </div>
     <label>
-      Size: {cur_line.width}
-      <input type="range" bind:value={slider_value} min="1" max="40" />
-    </label>
-    <label>
-      Color: {cur_line.stroke}
-      <input type="color" bind:value={cur_line.stroke} />
-      <select bind:value={cur_line.stroke}>
+      Color: {cur_shape.stroke}
+      <input type="color" bind:value={cur_shape.stroke} />
+      <select bind:value={cur_shape.stroke}>
         <option value="#FF0000">red</option>
         <option value="#FFA500">orange</option>
         <option value="#ffff00">yellow</option>
@@ -98,7 +178,7 @@
     </label>
     <button
       on:click={() => {
-        lines.length > 0 ? (lines = lines.slice(0, lines.length - 1)) : "";
+        shapes.length > 0 ? (shapes = shapes.slice(0, shapes.length - 1)) : "";
       }}
     >
       UNDO
@@ -113,9 +193,11 @@
     border-style: solid;
     display: block;
   }
-  polyline {
+  polyline,
+  ellipse {
     pointer-events: none;
   }
+
   .controls > * {
     margin: 1em;
   }
@@ -124,6 +206,10 @@
     padding: 0.2rem;
     height: 3rem;
     width: 5rem;
+  }
+  input[type="checkbox"],
+  input[type="radio"] {
+    display: inline;
   }
 
   input[type="range"] {

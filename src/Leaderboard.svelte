@@ -4,7 +4,7 @@
   import Avatar from "./Avatar.svelte";
   $: current_drawing = $state.drawings.find(
     (d) => d.prompt === $state.current_prompt
-  ) ?? { lines: [], username: "", prompt: "" };
+  ) ?? { shapes: [], username: "", prompt: "" };
 
   $: userVotes = new Map(
     $state.votes
@@ -26,7 +26,7 @@
 {#if $state.phase === "end"}
   <h1 class="has-text-centered">THE END!</h1>
 {:else}
-  <Canvas lines={current_drawing.lines} editable={false} />
+  <Canvas shapes={current_drawing.shapes} editable={false} />
   <h1 class="has-text-centered">{$state.current_prompt}</h1>
 {/if}
 

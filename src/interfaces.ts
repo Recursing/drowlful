@@ -24,16 +24,31 @@ export interface State {
   current_prompt: string;
 }
 
-export type Line = {
+export type Polyline = {
+  type: "polyline";
   stroke: string;
   width: number;
-  points: string;
+  points: [number, number][];
+  fill: boolean;
 };
+
+export type Ellipse = {
+  type: "ellipse";
+  stroke: string;
+  width: number;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  fill: boolean;
+};
+
+export type Shape = Polyline | Ellipse;
 
 export type Drawing = {
   prompt: string;
   username: string;
-  lines: Line[];
+  shapes: Shape[];
 };
 
 export type Guess = {

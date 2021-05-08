@@ -42,7 +42,7 @@
   {#each state.drawings as drawing}
     <div class="stack">
       <div class="col2">
-        <Canvas lines={drawing.lines} editable={false} />
+        <Canvas shapes={drawing.shapes} editable={false} />
         <h1 class="has-text-centered">{drawing.prompt}</h1>
       </div>
       <div class="col2">

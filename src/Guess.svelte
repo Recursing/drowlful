@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type { User, Line } from "./interfaces";
+  import type { User, Shape } from "./interfaces";
+  import { shape_length, interpolated_shape } from "./shapes";
   import { tweened } from "svelte/motion";
   import { my_username, state } from "./stores";
   import { socket } from "./Websocket";
@@ -24,7 +25,7 @@
 
   const current_drawing = $state.drawings.find(
     (d) => d.prompt === $state.current_prompt
-  ) ?? { lines: [], username: "", prompt: "" };
+  ) ?? { shapes: [], username: "", prompt: "" };
 
   // TODO split in 3 small components for guess/vote/lol
 
@@ -129,38 +130,34 @@
   const tween_value = tweened(0);
   tween_value.set(1, { duration: 10000 });
 
-  let tweened_lines: Line[] = [];
+  let tweened_shapes: Shape[] = [];
 
-  const total_points = current_drawing.lines
-    .map((l) => l.points.length)
-    .reduce((a, b) => a + b, 0);
+  const sum = (arr: number[]): number => {
+    let t = 0;
+    for (let n of arr) t += n;
+    return t;
+  };
 
-  function updateTweenedLines(value: number, lines: Line[]) {
-    tweened_lines = [];
-    let points_left = Math.floor(value * total_points);
-    for (let line of lines) {
-      if (line.points.length <= points_left) {
-        tweened_lines.push(line);
-        points_left -= line.points.length;
+  const total_length = sum(current_drawing.shapes.map(shape_length));
+
+  function updateTweenedShapes(value: number, shapes: Shape[]) {
+    tweened_shapes = [];
+    let length_left = Math.floor(value * total_length);
+    for (let shape of shapes) {
+      let s_length = shape_length(shape);
+      if (s_length <= length_left) {
+        tweened_shapes.push(shape);
+        length_left -= s_length;
       } else {
-        while (
-          line.points[points_left] !== " " &&
-          points_left < line.points.length
-        ) {
-          points_left += 1;
-        }
-        tweened_lines.push({
-          points: line.points.slice(0, points_left),
-          width: line.width,
-          stroke: line.stroke,
-        });
+        shape = interpolated_shape(shape, length_left);
+        tweened_shapes.push(shape);
         break;
       }
     }
-    tweened_lines = tweened_lines;
+    tweened_shapes = tweened_shapes;
   }
 
-  $: updateTweenedLines($tween_value, current_drawing.lines);
+  $: updateTweenedShapes($tween_value, current_drawing.shapes);
 </script>
 
 {#if $state.phase === "guess"}
@@ -181,7 +178,7 @@
   <h1 class="has-text-centered">UNKNOWN PHASE</h1>
 {/if}
 
-<Canvas lines={tweened_lines} editable={false} />
+<Canvas shapes={tweened_shapes} editable={false} />
 
 {#if $state.phase === "guess"}
   {#if sent_guess}

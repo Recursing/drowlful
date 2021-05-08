@@ -310,7 +310,6 @@ io.on("connection", (socket: Socket) => {
         (u) => u.username !== username
       );
     }
-    // TODO add disconnected_users to game.state and allow them to relogin
     updateState();
   });
 

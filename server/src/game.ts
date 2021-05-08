@@ -10,6 +10,53 @@ class ServerState implements State {
   current_prompt = "";
 }
 
+const drawState: State = {
+  users: [
+    {
+      username: "1",
+      img_src:
+        "https://upload.wikimedia.org/wikipedia/en/2/28/Pok%C3%A9mon_Bulbasaur_art.png",
+      proposed_prompt: "1",
+      assigned_prompt: "2",
+      score: 0,
+      lol_score: 0,
+    },
+    {
+      username: "2",
+      img_src:
+        "https://upload.wikimedia.org/wikipedia/en/2/22/Pok%C3%A9mon_Mudkip_art.png",
+      proposed_prompt: "2",
+      assigned_prompt: "3",
+      score: 0,
+      lol_score: 0,
+    },
+    {
+      username: "3",
+      img_src:
+        "https://upload.wikimedia.org/wikipedia/en/a/aa/Pichu_artwork.png",
+      proposed_prompt: "3",
+      assigned_prompt: "4",
+      score: 0,
+      lol_score: 0,
+    },
+    {
+      username: "4",
+      img_src:
+        "https://upload.wikimedia.org/wikipedia/en/a/aa/Pok%C3%A9mon_Meowth_art.png",
+      proposed_prompt: "4",
+      assigned_prompt: "1",
+      score: 0,
+      lol_score: 0,
+    },
+  ],
+  drawings: [],
+  phase: "draw",
+  guesses: [],
+  votes: [],
+  lol_votes: [],
+  current_prompt: "",
+};
+
 // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#Sattolo's_algorithm
 function sattolo_shuffle(array: unknown[]) {
   for (let i = array.length - 1; i > 0; i--) {

@@ -257,7 +257,6 @@ io.on("connection", (socket) => {
         if (game_1.game.state.phase === "login") {
             game_1.game.state.users = game_1.game.state.users.filter((u) => u.username !== username);
         }
-        // TODO add disconnected_users to game.state and allow them to relogin
         updateState();
     });
     socket.emit("update state", game_1.game.state);
