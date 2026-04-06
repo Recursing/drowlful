@@ -1,0 +1,712 @@
+{
+	"_comment": "Game state fixtures for visual regression testing across Svelte 3 → 5 migration. Load these into the app to verify rendering matches before and after. Uses Pokemon images from the existing codebase.",
+
+	"users": [
+		{
+			"username": "Alice",
+			"img_src": "https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png",
+			"proposed_prompt": "A CAT RIDING A BICYCLE",
+			"assigned_prompt": "SUNSET OVER THE OCEAN",
+			"score": 0,
+			"lol_score": 0
+		},
+		{
+			"username": "Bob",
+			"img_src": "https://upload.wikimedia.org/wikipedia/en/2/28/Pok%C3%A9mon_Bulbasaur_art.png",
+			"proposed_prompt": "SUNSET OVER THE OCEAN",
+			"assigned_prompt": "ROBOT EATING SPAGHETTI",
+			"score": 0,
+			"lol_score": 0
+		},
+		{
+			"username": "Carol",
+			"img_src": "https://upload.wikimedia.org/wikipedia/en/5/59/Pok%C3%A9mon_Squirtle_art.png",
+			"proposed_prompt": "ROBOT EATING SPAGHETTI",
+			"assigned_prompt": "PENGUIN WITH A TOP HAT",
+			"score": 0,
+			"lol_score": 0
+		},
+		{
+			"username": "Dave",
+			"img_src": "https://upload.wikimedia.org/wikipedia/en/a/a5/Pok%C3%A9mon_Charmander_art.png",
+			"proposed_prompt": "PENGUIN WITH A TOP HAT",
+			"assigned_prompt": "A CAT RIDING A BICYCLE",
+			"score": 0,
+			"lol_score": 0
+		}
+	],
+
+	"drawings": [
+		{
+			"prompt": "SUNSET OVER THE OCEAN",
+			"username": "Alice",
+			"shapes": [
+				{
+					"type": "ellipse",
+					"stroke": "#FFA500",
+					"width": 4,
+					"x1": 300,
+					"y1": 200,
+					"x2": 500,
+					"y2": 350,
+					"fill": true,
+					"_comment": "Orange sun"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#0000ff",
+					"width": 6,
+					"fill": false,
+					"points": [
+						[0, 350],
+						[50, 340],
+						[100, 355],
+						[150, 335],
+						[200, 350],
+						[250, 330],
+						[300, 345],
+						[350, 335],
+						[400, 350],
+						[450, 340],
+						[500, 355],
+						[550, 335],
+						[600, 350],
+						[650, 340],
+						[700, 350],
+						[750, 335],
+						[800, 350]
+					],
+					"_comment": "Ocean horizon with waves"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#ff0000",
+					"width": 2,
+					"fill": false,
+					"points": [
+						[350, 200],
+						[340, 150],
+						[360, 150],
+						[350, 200],
+						[330, 170],
+						[370, 170],
+						[350, 120],
+						[340, 100],
+						[360, 100],
+						[350, 80]
+					],
+					"_comment": "Sun rays"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#0000ff",
+					"width": 8,
+					"fill": true,
+					"points": [
+						[0, 350],
+						[0, 600],
+						[800, 600],
+						[800, 350],
+						[750, 340],
+						[700, 355],
+						[650, 340],
+						[600, 350],
+						[550, 340],
+						[500, 355],
+						[450, 340],
+						[400, 350],
+						[350, 340],
+						[300, 345],
+						[250, 335],
+						[200, 350],
+						[150, 340],
+						[100, 355],
+						[50, 340],
+						[0, 350]
+					],
+					"_comment": "Ocean body filled blue"
+				}
+			]
+		},
+		{
+			"prompt": "ROBOT EATING SPAGHETTI",
+			"username": "Bob",
+			"shapes": [
+				{
+					"type": "ellipse",
+					"stroke": "#808080",
+					"width": 3,
+					"x1": 300,
+					"y1": 100,
+					"x2": 500,
+					"y2": 250,
+					"fill": true,
+					"_comment": "Robot head"
+				},
+				{
+					"type": "ellipse",
+					"stroke": "#000000",
+					"width": 2,
+					"x1": 350,
+					"y1": 140,
+					"x2": 380,
+					"y2": 170,
+					"fill": true,
+					"_comment": "Left eye"
+				},
+				{
+					"type": "ellipse",
+					"stroke": "#000000",
+					"width": 2,
+					"x1": 420,
+					"y1": 140,
+					"x2": 450,
+					"y2": 170,
+					"fill": true,
+					"_comment": "Right eye"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#000000",
+					"width": 3,
+					"fill": false,
+					"points": [
+						[370, 210],
+						[380, 220],
+						[390, 210],
+						[400, 220],
+						[410, 210],
+						[420, 220],
+						[430, 210]
+					],
+					"_comment": "Zigzag mouth"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#808080",
+					"width": 4,
+					"fill": false,
+					"points": [
+						[350, 250],
+						[350, 350],
+						[300, 350],
+						[300, 500],
+						[350, 500],
+						[350, 450],
+						[450, 450],
+						[450, 500],
+						[500, 500],
+						[500, 350],
+						[450, 350],
+						[450, 250]
+					],
+					"_comment": "Robot body outline"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#FFA500",
+					"width": 3,
+					"fill": false,
+					"points": [
+						[300, 380],
+						[280, 400],
+						[250, 380],
+						[230, 410],
+						[200, 390],
+						[180, 420],
+						[200, 430],
+						[230, 420],
+						[260, 440],
+						[280, 420],
+						[300, 430],
+						[320, 410],
+						[340, 430],
+						[360, 420],
+						[380, 440]
+					],
+					"_comment": "Spaghetti noodles"
+				},
+				{
+					"type": "ellipse",
+					"stroke": "#ff0000",
+					"width": 2,
+					"x1": 200,
+					"y1": 390,
+					"x2": 260,
+					"y2": 440,
+					"fill": true,
+					"_comment": "Meatball"
+				}
+			]
+		},
+		{
+			"prompt": "PENGUIN WITH A TOP HAT",
+			"username": "Carol",
+			"shapes": [
+				{
+					"type": "ellipse",
+					"stroke": "#000000",
+					"width": 3,
+					"x1": 320,
+					"y1": 200,
+					"x2": 480,
+					"y2": 500,
+					"fill": true,
+					"_comment": "Penguin body black"
+				},
+				{
+					"type": "ellipse",
+					"stroke": "#ffffff",
+					"width": 2,
+					"x1": 350,
+					"y1": 280,
+					"x2": 450,
+					"y2": 480,
+					"fill": true,
+					"_comment": "White belly"
+				},
+				{
+					"type": "ellipse",
+					"stroke": "#000000",
+					"width": 2,
+					"x1": 360,
+					"y1": 120,
+					"x2": 440,
+					"y2": 220,
+					"fill": true,
+					"_comment": "Head"
+				},
+				{
+					"type": "ellipse",
+					"stroke": "#ffffff",
+					"width": 1,
+					"x1": 375,
+					"y1": 150,
+					"x2": 395,
+					"y2": 170,
+					"fill": true,
+					"_comment": "Left eye white"
+				},
+				{
+					"type": "ellipse",
+					"stroke": "#ffffff",
+					"width": 1,
+					"x1": 405,
+					"y1": 150,
+					"x2": 425,
+					"y2": 170,
+					"fill": true,
+					"_comment": "Right eye white"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#FFA500",
+					"width": 3,
+					"fill": true,
+					"points": [[385, 185], [400, 210], [415, 185]],
+					"_comment": "Orange beak"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#000000",
+					"width": 3,
+					"fill": true,
+					"points": [[340, 120], [340, 80], [460, 80], [460, 120]],
+					"_comment": "Hat brim"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#000000",
+					"width": 3,
+					"fill": true,
+					"points": [[360, 80], [360, 20], [440, 20], [440, 80]],
+					"_comment": "Hat top"
+				}
+			]
+		},
+		{
+			"prompt": "A CAT RIDING A BICYCLE",
+			"username": "Dave",
+			"shapes": [
+				{
+					"type": "ellipse",
+					"stroke": "#8b4513",
+					"width": 3,
+					"x1": 200,
+					"y1": 400,
+					"x2": 320,
+					"y2": 520,
+					"fill": false,
+					"_comment": "Back wheel"
+				},
+				{
+					"type": "ellipse",
+					"stroke": "#8b4513",
+					"width": 3,
+					"x1": 480,
+					"y1": 400,
+					"x2": 600,
+					"y2": 520,
+					"fill": false,
+					"_comment": "Front wheel"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#8b4513",
+					"width": 3,
+					"fill": false,
+					"points": [[260, 460], [400, 350], [540, 460], [400, 350], [400, 420]],
+					"_comment": "Bicycle frame"
+				},
+				{
+					"type": "ellipse",
+					"stroke": "#FFA500",
+					"width": 2,
+					"x1": 350,
+					"y1": 200,
+					"x2": 450,
+					"y2": 300,
+					"fill": true,
+					"_comment": "Cat body"
+				},
+				{
+					"type": "ellipse",
+					"stroke": "#FFA500",
+					"width": 2,
+					"x1": 370,
+					"y1": 130,
+					"x2": 430,
+					"y2": 210,
+					"fill": true,
+					"_comment": "Cat head"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#FFA500",
+					"width": 2,
+					"fill": true,
+					"points": [[375, 140], [365, 100], [385, 130]],
+					"_comment": "Left ear"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#FFA500",
+					"width": 2,
+					"fill": true,
+					"points": [[425, 140], [435, 100], [415, 130]],
+					"_comment": "Right ear"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#000000",
+					"width": 1,
+					"fill": false,
+					"points": [[390, 175], [395, 180], [400, 175]],
+					"_comment": "Cat nose"
+				},
+				{
+					"type": "polyline",
+					"stroke": "#FFA500",
+					"width": 2,
+					"fill": false,
+					"points": [[450, 250], [480, 280], [500, 260], [520, 290], [540, 270]],
+					"_comment": "Tail"
+				}
+			]
+		}
+	],
+
+	"phases": {
+		"login": {
+			"phase": "login",
+			"current_prompt": "",
+			"drawings": [],
+			"guesses": [],
+			"votes": [],
+			"lol_votes": []
+		},
+
+		"draw": {
+			"phase": "draw",
+			"current_prompt": "",
+			"drawings": [],
+			"guesses": [],
+			"votes": [],
+			"lol_votes": [],
+			"_comment": "No drawings yet. Some players may have submitted (shown via drawings array having entries). Use 'draw_partial' for that."
+		},
+
+		"draw_partial": {
+			"phase": "draw",
+			"current_prompt": "",
+			"drawings": [
+				{ "prompt": "SUNSET OVER THE OCEAN", "username": "Alice", "shapes": "__ref:drawings[0]" },
+				{ "prompt": "ROBOT EATING SPAGHETTI", "username": "Bob", "shapes": "__ref:drawings[1]" }
+			],
+			"guesses": [],
+			"votes": [],
+			"lol_votes": [],
+			"_comment": "Alice and Bob submitted drawings. Carol and Dave still drawing."
+		},
+
+		"guess": {
+			"phase": "guess",
+			"current_prompt": "SUNSET OVER THE OCEAN",
+			"guesses": [],
+			"votes": [],
+			"lol_votes": [],
+			"_comment": "First round. Drawing by Alice displayed with tween animation. Bob, Carol, Dave need to guess. Alice (assigned this prompt) can't guess."
+		},
+
+		"guess_partial": {
+			"phase": "guess",
+			"current_prompt": "SUNSET OVER THE OCEAN",
+			"guesses": [
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"guessed_prompt": "BEACH AT DAWN",
+					"guesser_username": "Carol"
+				}
+			],
+			"votes": [],
+			"lol_votes": [],
+			"_comment": "Carol guessed. Waiting for Bob and Dave. (Alice proposed this prompt so she's excluded too, meaning we need users.length - 2 = 2 guesses to advance.)"
+		},
+
+		"vote": {
+			"phase": "vote",
+			"current_prompt": "SUNSET OVER THE OCEAN",
+			"guesses": [
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"guessed_prompt": "BEACH AT DAWN",
+					"guesser_username": "Carol"
+				},
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"guessed_prompt": "ORANGE BALL IN THE SKY",
+					"guesser_username": "Dave"
+				}
+			],
+			"votes": [],
+			"lol_votes": [],
+			"_comment": "All guesses in. Vote options: 'BEACH AT DAWN' (Carol), 'ORANGE BALL IN THE SKY' (Dave), 'SUNSET OVER THE OCEAN' (real). Bob and Alice's prompt proposer excluded."
+		},
+
+		"vote_partial": {
+			"phase": "vote",
+			"current_prompt": "SUNSET OVER THE OCEAN",
+			"guesses": [
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"guessed_prompt": "BEACH AT DAWN",
+					"guesser_username": "Carol"
+				},
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"guessed_prompt": "ORANGE BALL IN THE SKY",
+					"guesser_username": "Dave"
+				}
+			],
+			"votes": [
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"voted_prompt": "SUNSET OVER THE OCEAN",
+					"voter_username": "Carol"
+				}
+			],
+			"lol_votes": [],
+			"_comment": "Carol voted correctly (for real prompt). Waiting for Dave."
+		},
+
+		"lol_vote": {
+			"phase": "lol vote",
+			"current_prompt": "SUNSET OVER THE OCEAN",
+			"guesses": [
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"guessed_prompt": "BEACH AT DAWN",
+					"guesser_username": "Carol"
+				},
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"guessed_prompt": "ORANGE BALL IN THE SKY",
+					"guesser_username": "Dave"
+				}
+			],
+			"votes": [
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"voted_prompt": "SUNSET OVER THE OCEAN",
+					"voter_username": "Carol"
+				},
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"voted_prompt": "BEACH AT DAWN",
+					"voter_username": "Dave"
+				}
+			],
+			"lol_votes": [],
+			"_comment": "Scores after voting: Alice (drawer) +100 (Carol voted real), Carol (voter) +100 (voted real), Carol (guesser) +100 (Dave voted for her guess). Users with scores: Alice 100, Bob 0, Carol 200, Dave 0."
+		},
+
+		"leaderboard": {
+			"phase": "leaderboard",
+			"current_prompt": "SUNSET OVER THE OCEAN",
+			"guesses": [
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"guessed_prompt": "BEACH AT DAWN",
+					"guesser_username": "Carol"
+				},
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"guessed_prompt": "ORANGE BALL IN THE SKY",
+					"guesser_username": "Dave"
+				}
+			],
+			"votes": [
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"voted_prompt": "SUNSET OVER THE OCEAN",
+					"voter_username": "Carol"
+				},
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"voted_prompt": "BEACH AT DAWN",
+					"voter_username": "Dave"
+				}
+			],
+			"lol_votes": [
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"voted_prompt": "ORANGE BALL IN THE SKY",
+					"voter_username": "Carol"
+				}
+			],
+			"_comment": "Shows round results: drawing, who guessed what, who voted what, score deltas. Carol LOL-voted Dave's guess."
+		},
+
+		"end": {
+			"phase": "end",
+			"current_prompt": "A CAT RIDING A BICYCLE",
+			"guesses": [
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"guessed_prompt": "BEACH AT DAWN",
+					"guesser_username": "Carol"
+				},
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"guessed_prompt": "ORANGE BALL IN THE SKY",
+					"guesser_username": "Dave"
+				},
+				{
+					"real_prompt": "ROBOT EATING SPAGHETTI",
+					"guessed_prompt": "METAL MAN WITH PASTA",
+					"guesser_username": "Alice"
+				},
+				{
+					"real_prompt": "ROBOT EATING SPAGHETTI",
+					"guessed_prompt": "FRANKENSTEIN DINNER",
+					"guesser_username": "Dave"
+				},
+				{
+					"real_prompt": "PENGUIN WITH A TOP HAT",
+					"guessed_prompt": "FANCY BIRD",
+					"guesser_username": "Alice"
+				},
+				{
+					"real_prompt": "PENGUIN WITH A TOP HAT",
+					"guessed_prompt": "GENTLEMAN PENGUIN",
+					"guesser_username": "Bob"
+				},
+				{
+					"real_prompt": "A CAT RIDING A BICYCLE",
+					"guessed_prompt": "KITTEN ON WHEELS",
+					"guesser_username": "Bob"
+				},
+				{
+					"real_prompt": "A CAT RIDING A BICYCLE",
+					"guessed_prompt": "ANIMAL CYCLIST",
+					"guesser_username": "Carol"
+				}
+			],
+			"votes": [
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"voted_prompt": "SUNSET OVER THE OCEAN",
+					"voter_username": "Carol"
+				},
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"voted_prompt": "BEACH AT DAWN",
+					"voter_username": "Dave"
+				},
+				{
+					"real_prompt": "ROBOT EATING SPAGHETTI",
+					"voted_prompt": "METAL MAN WITH PASTA",
+					"voter_username": "Carol"
+				},
+				{
+					"real_prompt": "ROBOT EATING SPAGHETTI",
+					"voted_prompt": "ROBOT EATING SPAGHETTI",
+					"voter_username": "Alice"
+				},
+				{
+					"real_prompt": "PENGUIN WITH A TOP HAT",
+					"voted_prompt": "GENTLEMAN PENGUIN",
+					"voter_username": "Dave"
+				},
+				{
+					"real_prompt": "PENGUIN WITH A TOP HAT",
+					"voted_prompt": "PENGUIN WITH A TOP HAT",
+					"voter_username": "Alice"
+				},
+				{
+					"real_prompt": "A CAT RIDING A BICYCLE",
+					"voted_prompt": "A CAT RIDING A BICYCLE",
+					"voter_username": "Bob"
+				},
+				{
+					"real_prompt": "A CAT RIDING A BICYCLE",
+					"voted_prompt": "KITTEN ON WHEELS",
+					"voter_username": "Carol"
+				}
+			],
+			"lol_votes": [
+				{
+					"real_prompt": "SUNSET OVER THE OCEAN",
+					"voted_prompt": "ORANGE BALL IN THE SKY",
+					"voter_username": "Carol"
+				},
+				{
+					"real_prompt": "ROBOT EATING SPAGHETTI",
+					"voted_prompt": "FRANKENSTEIN DINNER",
+					"voter_username": "Alice"
+				},
+				{
+					"real_prompt": "A CAT RIDING A BICYCLE",
+					"voted_prompt": "KITTEN ON WHEELS",
+					"voter_username": "Alice"
+				}
+			],
+			"_comment": "Full game complete. Final scores should be: Alice 300 (drawer+100 r1, voter+100 r2, voter+100 r3), Bob 200 (guesser+100 r3 from Carol vote, voter+100 r4), Carol 400 (voter+100 r1, guesser+100 r1 from Dave, guesser+100 r2 from Carol?... scoring is complex, verify with actual logic), Dave 100. LOL scores: Dave 1, Dave 1, Bob 1."
+		}
+	},
+
+	"scores_after_each_round": {
+		"_comment": "Expected scores to verify against. Compute these by running the original server logic.",
+		"round_1_sunset": {
+			"Alice": { "score": 100, "lol_score": 0, "_reason": "drawer, Carol voted real → Alice +100" },
+			"Bob": { "score": 0, "lol_score": 0 },
+			"Carol": {
+				"score": 200,
+				"lol_score": 0,
+				"_reason": "voted real → +100, Dave voted for her guess → +100"
+			},
+			"Dave": { "score": 0, "lol_score": 1, "_reason": "Carol LOL'd his guess" }
+		},
+		"_note": "Remaining rounds need to be computed by running the actual scoring logic. The vote/score interactions are subtle enough that hand-computing is error-prone. Use the original server code or the new game logic to generate authoritative expected scores."
+	}
+}

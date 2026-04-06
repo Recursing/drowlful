@@ -1,0 +1,13 @@
+{
+  "unstable": ["kv"],
+  "deploy": {
+    "framework": "sveltekit"
+  },
+  "lint": {
+    "exclude": ["old/", ".svelte-kit/", "node_modules/", "src/", "tests/"]
+  },
+  "tasks": {
+    "biome:check": "deno run -A npm:@biomejs/biome check ./src/ ./tests/",
+    "biome:fix": "deno run -A npm:@biomejs/biome check --fix ./src/ ./tests/"
+  }
+}

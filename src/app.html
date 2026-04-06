@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Drowlful</title>
+		<link rel="icon" type="image/png" href="%sveltekit.assets%/favicon.png" />
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/papercss@1.9.2/dist/paper.min.css"
+		/>
+		<link rel="stylesheet" href="%sveltekit.assets%/global.css" />
+		%sveltekit.head%
+	</head>
+	<body>
+		<script
+			async
+			src="https://telegram.org/js/telegram-widget.js?23"
+			data-telegram-login="minnybot"
+			data-size="large"
+			data-onauth="onTelegramAuth(user)"
+			data-request-access="write"
+		></script>
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

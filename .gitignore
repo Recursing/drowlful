@@ -1,3 +1,5 @@
-node_modules
+node_modules/
 .env
-__pycache__
+.svelte-kit/
+test-results/
+package-lock.json
