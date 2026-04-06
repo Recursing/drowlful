@@ -54,7 +54,7 @@ async function loginAllPlayers(pages: Page[]): Promise<string> {
 	// First player creates the game
 	const p0 = at(pages, 0);
 	await p0.goto("/");
-	await p0.fill('#username-input', "player0");
+	await p0.fill("#username-input", "player0");
 	await p0.fill('[placeholder="e.g. A cat riding a bicycle"]', at(PROMPTS, 0));
 	await p0.click("text=Ready!");
 
@@ -68,7 +68,7 @@ async function loginAllPlayers(pages: Page[]): Promise<string> {
 	for (let i = 1; i < NUM_PLAYERS; i++) {
 		const page = at(pages, i);
 		await page.goto(`/?game=${gameCode}`);
-		await page.fill('#username-input', `player${i}`);
+		await page.fill("#username-input", `player${i}`);
 		await page.fill('[placeholder="e.g. A cat riding a bicycle"]', at(PROMPTS, i));
 		await page.click("text=Ready!");
 	}
@@ -102,8 +102,9 @@ async function drawPhase(pages: Page[]) {
 		await page.mouse.move(box.x + 100, box.y + 100);
 		await page.mouse.up();
 
-		page.on("dialog", (dialog) => dialog.accept());
 		await page.click("text=Done!");
+		// Click "Yes" on the in-page confirm modal
+		await page.click("text=Yes");
 	}
 }
 

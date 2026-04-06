@@ -6,16 +6,18 @@
 	import Draw from '$lib/components/Draw.svelte';
 	import Guess from '$lib/components/Guess.svelte';
 	import Leaderboard from '$lib/components/Leaderboard.svelte';
+	import Login from '$lib/components/Login.svelte';
+	import Modal from '$lib/components/Modal.svelte';
 	import Progressbar from '$lib/components/Progressbar.svelte';
 	import RenderState from '$lib/components/RenderState.svelte';
-	import Login from '$lib/components/Login.svelte';
 	import { game } from '$lib/game-state.svelte';
+	import { modal } from '$lib/modal.svelte';
 
 	let userList = $derived([...game.current.users]);
 
 	async function startGame() {
 		const error = await api.startGameAction();
-		if (error) alert(error);
+		if (error) modal.alert(error);
 	}
 
 	function newGame() {
@@ -113,6 +115,7 @@
 	{/if}
 	</div>
 </div>
+<Modal />
 
 <style>
 	.container {

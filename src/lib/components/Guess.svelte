@@ -2,6 +2,7 @@
 	import { tweened } from 'svelte/motion';
 	import * as api from '$lib/api';
 	import { game } from '$lib/game-state.svelte';
+	import { modal } from '$lib/modal.svelte';
 	import { interpolated_shape, shape_length } from '$lib/shapes';
 	import type { Shape, User } from '$lib/types';
 	import Avatar from './Avatar.svelte';
@@ -54,19 +55,19 @@
 
 	async function doSendGuess() {
 		const error = await api.sendGuess(game.current.current_prompt, guessedPrompt);
-		if (error) { alert(error); return; }
+		if (error) { modal.alert(error); return; }
 		guessedPrompt = '';
 	}
 
 	async function doSendVote() {
 		const error = await api.sendVote(game.current.current_prompt, votedPrompt);
-		if (error) { alert(error); return; }
+		if (error) { modal.alert(error); return; }
 		votedPrompt = '';
 	}
 
 	async function doSendLOL(prompt: string) {
 		const error = await api.sendLolVote(game.current.current_prompt, prompt);
-		if (error) alert(error);
+		if (error) modal.alert(error);
 	}
 
 	let possiblePrompts = $derived.by(() => {

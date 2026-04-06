@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as api from '$lib/api';
 	import { game } from '$lib/game-state.svelte';
+	import { modal } from '$lib/modal.svelte';
 	import { normalizePrompt } from '$lib/types';
 
 	let username = $state('');
@@ -28,28 +29,23 @@
 	let img_src = pickRandomImage();
 
 	async function onLogin() {
-		if (!prompt) { alert('Write prompt first!'); return; }
-		if (!username) { alert('Empty username'); return; }
-		if (!img_src) { alert('Empty image'); return; }
+		if (!prompt || !username || !img_src) return;
 		const error = await api.login(username, img_src, normalizePrompt(prompt), game.gameId || undefined);
-		if (error) { alert(error); return; }
+		if (error) { modal.alert(error); return; }
 		api.startPolling();
 	}
 
 	async function doRelogin() {
-		if (!username) { alert('Empty username'); return; }
-		if (!game.gameId) { alert('Enter a game code first'); return; }
+		if (!username || !game.gameId) return;
 		const error = await api.relogin(username, game.gameId);
-		if (error) { alert(error); return; }
+		if (error) { modal.alert(error); return; }
 		api.startPolling();
 	}
 
 	async function doLateLogin() {
-		if (!username) { alert('Empty username'); return; }
-		if (!img_src) { alert('Empty image'); return; }
-		if (!game.gameId) { alert('Enter a game code first'); return; }
+		if (!username || !img_src || !game.gameId) return;
 		const error = await api.lateLogin(username, img_src, game.gameId);
-		if (error) { alert(error); return; }
+		if (error) { modal.alert(error); return; }
 		api.startPolling();
 	}
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { sendDrawing } from '$lib/api';
 	import { game } from '$lib/game-state.svelte';
+	import { modal } from '$lib/modal.svelte';
 	import type { Shape } from '$lib/types';
 	import Canvas from './Canvas.svelte';
 
@@ -11,9 +12,10 @@
 	let shapes = $state<Shape[]>([]);
 
 	async function onDone() {
-		if (sentDrawing || !confirm('Send Drawing?')) return;
+		if (sentDrawing) return;
+		if (!(await modal.confirm('Send drawing?'))) return;
 		const error = await sendDrawing(prompt, shapes);
-		if (error) alert(error);
+		if (error) modal.alert(error);
 	}
 </script>
 

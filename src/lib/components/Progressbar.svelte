@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tweened } from 'svelte/motion';
 	import { game } from '$lib/game-state.svelte';
+	import { modal } from '$lib/modal.svelte';
 
 	const DRAW_TIME = 181;
 	const GUESS_TIME = 60;
@@ -23,7 +24,7 @@
 			.set(0, { duration: totTime ? 100 : 1000 })
 			.then(() => progress.set(1, { duration: totTime * 1000 }))
 			.then(() => {
-				if (condition()) alert(message);
+				if (condition()) modal.alert(message);
 			});
 	}
 
