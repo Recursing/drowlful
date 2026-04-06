@@ -14,13 +14,6 @@ const PROMPTS = [
 	"PENGUIN WITH A TOP HAT",
 	"DANCING BANANA IN SPACE",
 ];
-const IMAGES = [
-	"https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png",
-	"https://upload.wikimedia.org/wikipedia/en/2/28/Pok%C3%A9mon_Bulbasaur_art.png",
-	"https://upload.wikimedia.org/wikipedia/en/5/59/Pok%C3%A9mon_Squirtle_art.png",
-	"https://img.pokemondb.net/artwork/large/charmander.jpg",
-	"https://upload.wikimedia.org/wikipedia/en/2/22/Pok%C3%A9mon_Jigglypuff_art.png",
-];
 
 // Tight timeouts to catch regressions — these should resolve in <1s normally
 const PHASE_TIMEOUT = 5_000;
@@ -61,10 +54,9 @@ async function loginAllPlayers(pages: Page[]): Promise<string> {
 	// First player creates the game
 	const p0 = at(pages, 0);
 	await p0.goto("/");
-	await p0.fill('[placeholder="Username"]', "player0");
-	await p0.fill('input[type="url"]', at(IMAGES, 0));
-	await p0.fill('[placeholder="Your prompt"]', at(PROMPTS, 0));
-	await p0.click("text=Login");
+	await p0.fill('#username-input', "player0");
+	await p0.fill('[placeholder="e.g. A cat riding a bicycle"]', at(PROMPTS, 0));
+	await p0.click("text=Ready!");
 
 	await expect(p0.getByText(/Game code:/)).toBeVisible();
 	const gameCodeText = await p0.getByText(/Game code:/).textContent();
@@ -76,10 +68,9 @@ async function loginAllPlayers(pages: Page[]): Promise<string> {
 	for (let i = 1; i < NUM_PLAYERS; i++) {
 		const page = at(pages, i);
 		await page.goto(`/?game=${gameCode}`);
-		await page.fill('[placeholder="Username"]', `player${i}`);
-		await page.fill('input[type="url"]', at(IMAGES, i));
-		await page.fill('[placeholder="Your prompt"]', at(PROMPTS, i));
-		await page.click("text=Login");
+		await page.fill('#username-input', `player${i}`);
+		await page.fill('[placeholder="e.g. A cat riding a bicycle"]', at(PROMPTS, i));
+		await page.click("text=Ready!");
 	}
 
 	// All players visible in every lobby
@@ -259,7 +250,7 @@ test("player reconnects after page refresh", async ({ browser }) => {
 	).toBeVisible({ timeout: PHASE_TIMEOUT });
 
 	// Verify they do NOT see the login form
-	await expect(p2.locator('[placeholder="Your prompt"]')).not.toBeVisible();
+	await expect(p2.locator('[placeholder="e.g. A cat riding a bicycle"]')).not.toBeVisible();
 
 	console.log("Player 2 reconnected successfully!");
 

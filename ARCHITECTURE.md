@@ -32,7 +32,7 @@ drowlful/
 │   ├── favicon.png
 │   └── global.css                      # Existing global styles (PaperCSS loaded via CDN in app.html)
 ├── src/
-│   ├── app.html                        # Shell (replaces public/index.html, keep Telegram widget script)
+│   ├── app.html                        # Shell (PaperCSS CDN, global styles)
 │   ├── lib/
 │   │   ├── types.ts                    # Shared types (from src/interfaces.ts)
 │   │   ├── game-state.svelte.ts        # Client state: $state.raw class (replaces stores.ts)
@@ -46,7 +46,7 @@ drowlful/
 │   │   │   ├── Progressbar.svelte
 │   │   │   ├── Avatar.svelte
 │   │   │   ├── SmallAvatar.svelte
-│   │   │   ├── TelegramLogin.svelte
+│   │   │   ├── Login.svelte
 │   │   │   └── RenderState.svelte
 │   │   └── server/
 │   │       ├── kv.ts                   # export const kv = await Deno.openKv()
@@ -72,7 +72,7 @@ drowlful/
 | `src/Canvas.svelte` | `src/lib/components/Canvas.svelte` | Svelte 5 migration |
 | `server/src/index.ts` | `src/routes/api/` | Express+Socket.IO → SvelteKit API routes |
 | `server/src/game.ts` | `src/lib/server/game.ts` | Class singleton → pure functions |
-| `public/index.html` | `src/app.html` | Remove Socket.IO CDN, keep Telegram widget |
+| `public/index.html` | `src/app.html` | Remove Socket.IO CDN and Telegram widget |
 | `public/global.css` | `static/global.css` | Unchanged |
 | `rollup.config.js` | Deleted | Vite via SvelteKit replaces Rollup |
 

@@ -40,9 +40,12 @@ class GameState {
 			this.previousLOLScores = new Map(newState.users.map((u) => [u.username, u.lol_score]));
 		}
 		this.current = newState;
-		if (!newState.users.some((u) => u.username === this.myUsername)) {
+		if (this.myUsername && !newState.users.some((u) => u.username === this.myUsername)) {
+			// User was removed or game expired — clear the whole session
 			this.myUsername = "";
+			this.gameId = "";
 			saveToStorage("drowlful_username", "");
+			saveToStorage("drowlful_gameId", "");
 		}
 	}
 

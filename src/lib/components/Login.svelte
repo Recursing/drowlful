@@ -1,19 +1,10 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import * as api from '$lib/api';
 	import { game } from '$lib/game-state.svelte';
 	import { normalizePrompt } from '$lib/types';
 
 	let username = $state('');
 	let prompt = $state('');
-
-	interface TelegramUser {
-		username?: string;
-		first_name?: string;
-		last_name?: string;
-		photo_url?: string;
-		id?: string;
-	}
 
 	const default_images = [
 		'https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png',
@@ -30,37 +21,19 @@
 		'https://img.pokemondb.net/artwork/large/mudkip.jpg'
 	];
 
-	let img_src = $state(default_images[Math.floor(Math.random() * default_images.length)] ?? '');
-
-	// Pick a non-taken image
-	$effect(() => {
-		const taken = new Set(game.current.users.map((u) => u.img_src));
-		if (taken.has(img_src)) {
-			const available = default_images.filter((img) => !taken.has(img));
-			const pick = available[Math.floor(Math.random() * available.length)];
-			if (pick) img_src = pick;
-		}
-	});
-
-	function removeTelegramWidget() {
-		const el = document.getElementById('telegram-login-minnybot');
-		el?.remove();
+	function pickRandomImage() {
+		return default_images[Math.floor(Math.random() * default_images.length)] ?? '';
 	}
 
-	function onTelegramAuth(user: TelegramUser) {
-		username = user.username || `${user.first_name} ${user.last_name}`;
-		img_src = user.photo_url || img_src;
-		onManualAuth();
-	}
+	let img_src = pickRandomImage();
 
-	async function onManualAuth() {
+	async function onLogin() {
 		if (!prompt) { alert('Write prompt first!'); return; }
 		if (!username) { alert('Empty username'); return; }
 		if (!img_src) { alert('Empty image'); return; }
 		const error = await api.login(username, img_src, normalizePrompt(prompt), game.gameId || undefined);
 		if (error) { alert(error); return; }
 		api.startPolling();
-		removeTelegramWidget();
 	}
 
 	async function doRelogin() {
@@ -69,7 +42,6 @@
 		const error = await api.relogin(username, game.gameId);
 		if (error) { alert(error); return; }
 		api.startPolling();
-		removeTelegramWidget();
 	}
 
 	async function doLateLogin() {
@@ -79,22 +51,16 @@
 		const error = await api.lateLogin(username, img_src, game.gameId);
 		if (error) { alert(error); return; }
 		api.startPolling();
-		removeTelegramWidget();
 	}
 
 	let login_type = $state<'login' | 'relogin' | 'late login'>('login');
-
-	onMount(() => {
-		// @ts-ignore: Telegram widget callback
-		window.onTelegramAuth = onTelegramAuth;
-	});
 </script>
 
 {#if game.current.phase === 'login'}
-	<div class="row">
+	<div class="row top-row">
 		<div class="col sm-4">
 			<div class="form-group">
-				<label for="game-code-input">Game Code (leave empty to create new)</label>
+				<label for="game-code-input">Game Code (empty = new game)</label>
 				<input
 					id="game-code-input"
 					bind:value={game.gameId}
@@ -105,45 +71,32 @@
 				/>
 			</div>
 		</div>
-	</div>
-	<div class="row">
 		<div class="col sm-4">
 			<div class="form-group">
-				<label for="username-input">Username</label>
+				<label for="username-input">Name</label>
 				<input
 					id="username-input"
 					bind:value={username}
 					class="input-block"
 					type="text"
-					placeholder="Username"
-					required
-				/>
-			</div>
-		</div>
-		<div class="col sm-8">
-			<div class="form-group">
-				<label for="image-url-input">Image url</label>
-				<input
-					id="image-url-input"
-					bind:value={img_src}
-					class="input-block"
-					type="url"
 					required
 				/>
 			</div>
 		</div>
 	</div>
-	<div class="row">
-		<input
+	<div class="form-group has-text-centered">
+		<label for="prompt-input">Prompt (someone else will draw this)</label>
+		<textarea
+			id="prompt-input"
 			bind:value={prompt}
-			class="width-100 input-block"
-			type="text"
-			placeholder="Your prompt"
-			onkeyup={(key: KeyboardEvent) => (key.code === 'Enter' ? onManualAuth() : null)}
+			class="prompt-input"
+			placeholder="e.g. A cat riding a bicycle"
+			rows="4"
+			onkeydown={(key: KeyboardEvent) => { if (key.code === 'Enter' && !key.shiftKey) { key.preventDefault(); onLogin(); } }}
 			required
-		/>
+		></textarea>
 	</div>
-	<button onclick={onManualAuth} class="width-60 btn-block">Login</button>
+	<button onclick={onLogin} class="ready-btn btn-block" disabled={!username || !prompt}>Ready!</button>
 {:else if login_type === 'login'}
 	<div class="row">
 		<div class="col sm-4">
@@ -167,30 +120,15 @@
 {:else if login_type === 'late login'}
 	<button onclick={() => (login_type = 'relogin')}> Login as existing player </button>
 	<div class="row">
-		<div class="col sm-4">
-			<div class="form-group">
-				<label for="username-input">Username</label>
-				<input
-					id="username-input"
-					bind:value={username}
-					class="input-block"
-					type="text"
-					placeholder="Username"
-					required
-				/>
-			</div>
-		</div>
-		<div class="col sm-8">
-			<div class="form-group">
-				<label for="image-url-input">Image url</label>
-				<input
-					id="image-url-input"
-					bind:value={img_src}
-					class="input-block"
-					type="url"
-					required
-				/>
-			</div>
+		<div class="form-group">
+			<label for="username-input">Name</label>
+			<input
+				id="username-input"
+				bind:value={username}
+				class="input-block"
+				type="text"
+				required
+			/>
 		</div>
 	</div>
 	<div class="col">
@@ -226,13 +164,19 @@
 		width: 100%;
 	}
 
-	.width-60 {
-		max-width: 60%;
-		margin: auto;
+	.top-row {
+		justify-content: center;
+	}
+	.prompt-input {
+		width: 64ch;
+		max-width: 100%;
+		box-sizing: border-box;
+		margin: 0 auto;
+		display: block;
 	}
 
-	.width-100 {
-		width: 100%;
-		margin: auto;
+	.ready-btn {
+		max-width: 40%;
+		margin: 2em auto 0;
 	}
 </style>

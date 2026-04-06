@@ -91,9 +91,6 @@ export function login(
 		if (user.username === name) {
 			return `${name} name is taken, choose a different one`;
 		}
-		if (user.img_src === img_src) {
-			return "Image is taken, choose a different one";
-		}
 		if (user.proposed_prompt === prompt) {
 			return `${prompt} prompt is taken, choose a different one`;
 		}
@@ -125,9 +122,6 @@ export function lateLogin(state: StoredState, name: string, img_src: string): st
 	}
 	if (state.users.some((u) => u.username === name)) {
 		return `Cannot late login as ${name}, username taken`;
-	}
-	if (state.users.some((u) => u.img_src === img_src)) {
-		return "Cannot late login, image taken";
 	}
 	state.users.push({
 		username: name,

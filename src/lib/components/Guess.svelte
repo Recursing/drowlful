@@ -153,7 +153,7 @@
 {:else if game.current.phase === 'lol vote'}
 	<h1 class="has-text-centered">Give LOLs!</h1>
 {:else}
-	<h1 class="has-text-centered">UNKNOWN PHASE</h1>
+	<h1 class="has-text-centered">Unknown phase: {game.current.phase}</h1>
 {/if}
 
 <Canvas shapes={tweenedShapes} editable={false} />

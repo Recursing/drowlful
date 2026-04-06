@@ -8,7 +8,7 @@
 	import Leaderboard from '$lib/components/Leaderboard.svelte';
 	import Progressbar from '$lib/components/Progressbar.svelte';
 	import RenderState from '$lib/components/RenderState.svelte';
-	import TelegramLogin from '$lib/components/TelegramLogin.svelte';
+	import Login from '$lib/components/Login.svelte';
 	import { game } from '$lib/game-state.svelte';
 
 	let userList = $derived([...game.current.users]);
@@ -39,7 +39,7 @@
 
 	// Keep URL in sync with game ID
 	$effect(() => {
-		if (game.gameId && typeof window !== 'undefined') {
+		if (game.gameId) {
 			const url = new URL(window.location.href);
 			if (url.searchParams.get('game') !== game.gameId) {
 				url.searchParams.set('game', game.gameId);
@@ -54,11 +54,12 @@
 </script>
 
 <div class="container">
+	<div>
 	{#if !game.connectionOk}
 		<div class="reconnecting">Reconnecting...</div>
 	{/if}
 	{#if game.myUsername === ''}
-		<TelegramLogin />
+		<Login />
 	{:else if game.current.phase === 'login'}
 		<h1 class="has-text-centered">Waiting for other players</h1>
 		{#if game.gameId}
@@ -72,6 +73,7 @@
 		<button class="centered-flex" onclick={startGame} disabled={userList.length < 4}>
 			Everybody in!
 		</button>
+		<button class="centered-flex leave-btn" onclick={newGame}>New Game</button>
 	{:else if game.current.phase === 'draw'}
 		{#if game.current.drawings.some((d) => d.username === game.myUsername)}
 			<h1 class="has-text-centered">
@@ -103,18 +105,27 @@
 			<button class="centered-flex" onclick={newGame}>New Game</button>
 		{/if}
 	{:else}
-		<h1 class="has-text-centered">UNKNOWN STATE AAAA!!!! {game.current.phase}</h1>
+		<h1 class="has-text-centered">Unknown phase: {game.current.phase}</h1>
 	{/if}
 
 	{#if game.myUsername !== ''}
 		<Progressbar />
 	{/if}
+	</div>
 </div>
 
 <style>
 	.container {
 		margin-left: auto;
 		margin-right: auto;
+		min-height: 100vh;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+	.leave-btn {
+		opacity: 0.5;
+		font-size: 0.8em;
 	}
 	.reconnecting {
 		background: #ffe08a;
