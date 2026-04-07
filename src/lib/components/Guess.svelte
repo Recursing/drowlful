@@ -53,15 +53,21 @@
 			game.current.current_prompt === myUser.assigned_prompt
 	);
 
+	/** Race-condition errors (duplicate submissions, phase already advanced) are expected and silent */
+	function isRaceError(error: string): boolean {
+		return error.includes("already") || error.includes("Wrong game phase");
+	}
+
 	async function doSendGuess() {
+		if (!guessedPrompt.trim()) return;
 		const error = await api.sendGuess(game.current.current_prompt, guessedPrompt);
-		if (error) { modal.alert(error); return; }
+		if (error && !isRaceError(error)) { modal.alert(error); return; }
 		guessedPrompt = '';
 	}
 
 	async function doSendVote() {
 		const error = await api.sendVote(game.current.current_prompt, votedPrompt);
-		if (error) { modal.alert(error); return; }
+		if (error && !isRaceError(error)) { modal.alert(error); return; }
 		votedPrompt = '';
 	}
 
@@ -185,8 +191,11 @@
 				<div class="form-group">
 					<input
 						bind:value={guessedPrompt}
-						onkeyup={async (key: KeyboardEvent) => {
-							if (key.code === 'Enter') await doSendGuess();
+						onkeydown={(e: KeyboardEvent) => {
+							if (e.key === 'Enter') {
+								e.preventDefault();
+								doSendGuess();
+							}
 						}}
 						class="input-block"
 						type="text"
@@ -196,7 +205,7 @@
 				</div>
 			</div>
 			<div class="col sm-2">
-				<button onclick={doSendGuess} disabled={guessedPrompt.length === 0}> Send! </button>
+				<button onclick={() => doSendGuess()} disabled={guessedPrompt.length === 0}> Send! </button>
 			</div>
 		</div>
 	{/if}

@@ -1,4 +1,5 @@
 import { json } from "@sveltejs/kit";
+import { normalizeGameId } from "$lib/types";
 import {
 	buildClientState,
 	generateGameId,
@@ -38,7 +39,7 @@ async function handleAction(
 export const POST: RequestHandler = async ({ params, request }) => {
 	const { action } = params;
 	const body = await request.json();
-	const gameId: string | undefined = body.gameId;
+	const gameId: string | undefined = body.gameId ? normalizeGameId(body.gameId) : undefined;
 
 	// Login can create a new game
 	if (action === "login" && !gameId) {

@@ -12,7 +12,7 @@ export default defineConfig({
     command: "DROWLFUL_FAST_TIMERS=1 deno run -A node_modules/.bin/vite dev --port 4173",
     env: { DROWLFUL_FAST_TIMERS: "1" },
     port: 4173,
-    reuseExistingServer: false,
+    reuseExistingServer: true,
   },
   projects: [
     {

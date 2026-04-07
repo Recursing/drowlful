@@ -69,8 +69,14 @@ export interface StoredState {
 	lol_votes: Vote[];
 	phase: Phase;
 	current_prompt: string;
+	guess_ends_at?: number;
+	vote_ends_at?: number;
 	lol_vote_ends_at?: number;
 	leaderboard_ends_at?: number;
+}
+
+export function normalizeGameId(id: string): string {
+	return id.toUpperCase();
 }
 
 export function normalizePrompt(text: string): string {

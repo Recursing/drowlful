@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 function at<T>(arr: readonly T[], i: number): T {
 	const v = arr.at(i);
@@ -15,43 +15,27 @@ const PROMPTS = [
 	"DANCING BANANA IN SPACE",
 ];
 
-// Tight timeouts to catch regressions — these should resolve in <1s normally
-const PHASE_TIMEOUT = 5_000;
-// Deadline-based transitions (LOL vote + leaderboard) take ~10s in test mode
-const DEADLINE_TIMEOUT = 15_000;
+// With 200ms poll intervals in test mode, pages sync within ~400ms.
+const PHASE_TIMEOUT = 3_000;
+const DEADLINE_TIMEOUT = 5_000;
 
 /**
- * For each page in parallel: race between two locators.
- * If `actionLocator` wins, run the action. If `skipLocator` wins, this page is excluded.
- * Uses Playwright's built-in waitFor — no custom polling loops.
+ * Wait for ALL pages to show at least one of the given texts.
+ * This ensures every browser has polled and received the current phase.
  */
-async function raceAndAct(
-	pages: Page[],
-	actionLocator: (p: Page) => Locator,
-	skipLocator: (p: Page) => Locator,
-	action: (p: Page, i: number) => Promise<void>,
-	timeout = PHASE_TIMEOUT,
-) {
-	await Promise.all(
-		pages.map(async (page, i) => {
-			const result = await Promise.race([
-				actionLocator(page)
-					.waitFor({ state: "visible", timeout })
-					.then(() => "act" as const),
-				skipLocator(page)
-					.waitFor({ state: "visible", timeout })
-					.then(() => "skip" as const),
-			]);
-			if (result === "act") {
-				await action(page, i);
-			}
-		}),
-	);
+async function syncAllPages(pages: Page[], ...texts: string[]) {
+	const locator = (p: Page) => {
+		let loc = p.getByText(texts[0]!);
+		for (let i = 1; i < texts.length; i++) {
+			loc = loc.or(p.getByText(texts[i]!));
+		}
+		return loc;
+	};
+	await Promise.all(pages.map((p) => locator(p).waitFor({ state: "visible", timeout: PHASE_TIMEOUT })));
 }
 
 /** Login all players, return the game code */
 async function loginAllPlayers(pages: Page[]): Promise<string> {
-	// First player creates the game
 	const p0 = at(pages, 0);
 	await p0.goto("/");
 	await p0.fill("#username-input", "player0");
@@ -64,101 +48,121 @@ async function loginAllPlayers(pages: Page[]): Promise<string> {
 	const gameCode = gameCodeText.replace("Game code:", "").trim();
 	console.log(`Game code: ${gameCode}`);
 
-	// Remaining players join
-	for (let i = 1; i < NUM_PLAYERS; i++) {
-		const page = at(pages, i);
-		await page.goto(`/?game=${gameCode}`);
-		await page.fill("#username-input", `player${i}`);
-		await page.fill('[placeholder="e.g. A cat riding a bicycle"]', at(PROMPTS, i));
-		await page.click("text=Ready!");
-	}
-
-	// All players visible in every lobby
-	for (const page of pages) {
-		for (let i = 0; i < NUM_PLAYERS; i++) {
-			await expect(page.getByText(`player${i}`)).toBeVisible();
-		}
-	}
-
-	return gameCode;
-}
-
-/** All players draw a simple shape and submit */
-async function drawPhase(pages: Page[]) {
-	for (const page of pages) {
-		await expect(page.locator("svg")).toBeVisible();
-	}
-
-	for (const page of pages) {
-		const svg = page.locator("svg");
-		const box = await svg.boundingBox();
-		if (!box) throw new Error("SVG not found");
-
-		await page.mouse.move(box.x + 100, box.y + 100);
-		await page.mouse.down();
-		await page.mouse.move(box.x + 300, box.y + 100);
-		await page.mouse.move(box.x + 300, box.y + 300);
-		await page.mouse.move(box.x + 100, box.y + 300);
-		await page.mouse.move(box.x + 100, box.y + 100);
-		await page.mouse.up();
-
-		await page.click("text=Done!");
-		// Click "Yes" on the in-page confirm modal
-		await page.click("text=Yes");
-	}
-}
-
-/** Play one guess→vote→lol→leaderboard round */
-async function playRound(pages: Page[], round: number) {
-	console.log(`--- Round ${round + 1} of ${NUM_PLAYERS} ---`);
-
-	// GUESS: each page races between "I see guess input" vs "vote phase started"
-	const voteOrWait = (p: Page) =>
-		p.getByText("Pick one!").or(p.getByText("Wait for everybody to pick"));
-
-	await raceAndAct(
-		pages,
-		(p) => p.locator('[placeholder="Your guess"]'),
-		voteOrWait,
-		async (p, i) => {
-			await p.fill('[placeholder="Your guess"]', `Guess ${i} r${round}`);
-			await p.click('button:has-text("Send!")');
-		},
+	// Players 1-4 join in parallel
+	await Promise.all(
+		Array.from({ length: NUM_PLAYERS - 1 }, (_, j) => {
+			const i = j + 1;
+			const page = at(pages, i);
+			return (async () => {
+				await page.goto(`/?game=${gameCode}`);
+				await page.fill("#username-input", `player${i}`);
+				await page.fill('[placeholder="e.g. A cat riding a bicycle"]', at(PROMPTS, i));
+				await page.click("text=Ready!");
+			})();
+		}),
 	);
 
-	// VOTE: each page races between "I see Pick one!" vs "LOL phase started"
-	await raceAndAct(
-		pages,
-		(p) => p.getByText("Pick one!"),
-		(p) => p.getByText("Give LOLs!"),
-		async (p) => {
-			await p.locator('input[type="radio"]').first().click();
-			await p.click('button:has-text("Send!")');
-		},
-	);
-
-	// LOL VOTE: optional, click if available (short timeout — phase has a deadline)
+	// Verify all players visible on all pages
 	await Promise.all(
 		pages.map(async (page) => {
-			try {
-				const lolButton = page.locator('button:has-text("LOL point")').first();
-				await lolButton.waitFor({ state: "visible", timeout: 2000 });
-				await lolButton.click();
-			} catch {
-				// LOL phase may have already expired or this player can't LOL-vote
+			for (let i = 0; i < NUM_PLAYERS; i++) {
+				await expect(page.getByText(`player${i}`)).toBeVisible();
 			}
 		}),
 	);
 
-	// Wait for leaderboard to auto-advance to next round or end
-	await Promise.race(
-		pages.map((p) =>
-			Promise.race([
-				p.locator('[placeholder="Your guess"]').waitFor({ timeout: DEADLINE_TIMEOUT }),
-				p.getByText("Wait for everybody to guess").waitFor({ timeout: DEADLINE_TIMEOUT }),
-				p.getByText("THE END!").waitFor({ timeout: DEADLINE_TIMEOUT }),
-			]),
-		),
+	return gameCode;
+}
+
+async function drawPhase(pages: Page[]) {
+	for (const page of pages) {
+		const svg = page.locator("svg");
+		await expect(svg).toBeVisible();
+		const box = await svg.boundingBox();
+		if (!box) throw new Error("SVG not found");
+		await page.mouse.move(box.x + 100, box.y + 100);
+		await page.mouse.down();
+		await page.mouse.move(box.x + 300, box.y + 300);
+		await page.mouse.up();
+		await page.click("text=Done!");
+		await page.click("text=Yes");
+	}
+}
+
+/** Dismiss any open modal dialog (error alerts from previous actions) */
+async function dismissModal(page: Page) {
+	const dialog = page.locator("dialog[open]");
+	if (await dialog.count() > 0) {
+		await page.locator('dialog button:has-text("OK")').click();
+	}
+}
+
+/** Submit a guess by setting the input value atomically in the browser.
+ * Playwright's fill() can race with Svelte 5's $state.raw re-renders from polling:
+ * a re-render between the DOM value set and the input event dispatch resets the value.
+ * Using page.evaluate ensures the value set + event dispatch is one synchronous block. */
+async function fillAndSubmitGuess(page: Page, guess: string) {
+	await dismissModal(page);
+	await page.evaluate((text) => {
+		const input = document.querySelector('[placeholder="Your guess"]') as HTMLInputElement;
+		if (!input) throw new Error("Guess input not found");
+		const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+		setter.call(input, text);
+		input.dispatchEvent(new Event("input", { bubbles: true }));
+	}, guess);
+	await page.locator('button:has-text("Send!")').click();
+}
+
+async function playRound(pages: Page[], round: number) {
+	console.log(`--- Round ${round + 1} of ${NUM_PLAYERS} ---`);
+
+	// GUESS: sync all pages, then act on guessers
+	await syncAllPages(pages, "Type your guess for:", "Wait for everybody to guess");
+	for (const [i, page] of pages.entries()) {
+		const input = page.locator('[placeholder="Your guess"]');
+		if (await input.isVisible()) {
+			await fillAndSubmitGuess(page, `Guess ${i} r${round}`);
+		}
+	}
+
+	// VOTE: sync all pages, then act on voters
+	await syncAllPages(pages, "Pick one!", "Wait for everybody to pick");
+	for (const page of pages) {
+		if (await page.getByText("Pick one!").isVisible()) {
+			await page.locator('input[type="radio"]').first().click();
+			await page.click('button:has-text("Send!")');
+		}
+	}
+
+	// LOL: sync all pages, then click LOL buttons (optional — deadline advances phase)
+	await syncAllPages(pages, "Give LOLs!");
+	for (const page of pages) {
+		try {
+			const btn = page.locator('button:has-text("LOL point")').first();
+			if (await btn.isVisible({ timeout: 300 })) {
+				await btn.click({ timeout: 500 });
+			}
+		} catch {
+			// LOL button may detach during poll-triggered re-renders; deadline advances phase
+		}
+	}
+
+	// Wait for ALL pages to advance past leaderboard
+	await Promise.all(
+		pages.map(async (p, i) => {
+			try {
+				await p
+					.getByText("Type your guess for:")
+					.or(p.getByText("Wait for everybody to guess"))
+					.or(p.getByText("THE END!"))
+					.waitFor({ timeout: DEADLINE_TIMEOUT });
+			} catch (e) {
+				const h1 = await p.locator("h1").first().textContent().catch(() => "??");
+				const banner = await p.locator(".reconnecting").isVisible().catch(() => false);
+				console.error(`Player ${i} stuck: h1="${h1}", reconnecting=${banner}`);
+				throw e;
+			}
+		}),
 	);
 }
 
@@ -172,31 +176,21 @@ test("full game with 5 players", async ({ browser }) => {
 	await at(pages, 0).click("text=Everybody in!");
 	await drawPhase(pages);
 
-	// Play all rounds
 	for (let round = 0; round < NUM_PLAYERS; round++) {
 		await playRound(pages, round);
-
-		// Check if game ended
 		for (const page of pages) {
-			if (
-				await page
-					.getByText("THE END!")
-					.isVisible()
-					.catch(() => false)
-			) {
+			if (await page.getByText("THE END!").isVisible().catch(() => false)) {
 				console.log("  Game ended!");
-				round = NUM_PLAYERS; // break outer loop
+				round = NUM_PLAYERS;
 				break;
 			}
 		}
 	}
 
-	// All players see "THE END!"
 	for (const page of pages) {
 		await expect(page.getByText("THE END!")).toBeVisible();
 	}
 
-	// Scores consistent across all browsers
 	const scoreTexts: string[] = [];
 	for (const page of pages) {
 		const text = await page.locator(".row").first().textContent();
@@ -206,7 +200,6 @@ test("full game with 5 players", async ({ browser }) => {
 		expect(scoreTexts[i]).toBe(scoreTexts[0]);
 	}
 
-	// RenderState: all drawings visible with canvases at end phase
 	for (const page of pages) {
 		const svgCount = await page.locator("svg").count();
 		expect(svgCount).toBe(NUM_PLAYERS);
@@ -229,67 +222,64 @@ test("player reconnects after page refresh", async ({ browser }) => {
 	await at(pages, 0).click("text=Everybody in!");
 	await drawPhase(pages);
 
-	// Wait for guess phase to start on all pages
-	await Promise.all(
-		pages.map((p) =>
-			Promise.race([
-				p.locator('[placeholder="Your guess"]').waitFor({ timeout: PHASE_TIMEOUT }),
-				p.getByText("Wait for everybody to guess").waitFor({ timeout: PHASE_TIMEOUT }),
-			]),
-		),
-	);
+	await syncAllPages(pages, "Type your guess for:", "Wait for everybody to guess");
 
-	// Player 2 refreshes their page
 	const p2 = at(pages, 2);
 	console.log("Player 2 refreshing...");
 	await p2.reload();
 
-	// Player 2 should auto-reconnect — NOT see the login screen
-	// They should see either the guess input or the "wait" message
 	await expect(
-		p2.locator('[placeholder="Your guess"]').or(p2.getByText("Wait for everybody to guess")),
+		p2.getByText("Type your guess for:").or(p2.getByText("Wait for everybody to guess")),
 	).toBeVisible({ timeout: PHASE_TIMEOUT });
-
-	// Verify they do NOT see the login form
 	await expect(p2.locator('[placeholder="e.g. A cat riding a bicycle"]')).not.toBeVisible();
 
 	console.log("Player 2 reconnected successfully!");
-
-	// Play through the first round to verify the reconnected player participates
 	await playRound(pages, 0);
 
-	// Verify all players see the same phase after the round
-	const phases = await Promise.all(
-		pages.map(async (p) => {
-			if (
-				await p
-					.getByText("THE END!")
-					.isVisible()
-					.catch(() => false)
-			)
-				return "end";
-			if (
-				await p
-					.locator('[placeholder="Your guess"]')
-					.isVisible()
-					.catch(() => false)
-			)
-				return "guess";
-			if (
-				await p
-					.getByText("Wait for everybody to guess")
-					.isVisible()
-					.catch(() => false)
-			)
-				return "guess-wait";
-			return "other";
-		}),
-	);
-	console.log("Phases after round:", phases);
-	// All should be in the same general phase (guess/guess-wait for next round, or end)
-	const nonOther = phases.filter((p) => p !== "other");
-	expect(nonOther.length).toBeGreaterThan(0);
+	// Verify all players are in guess phase (not stuck on leaderboard or end)
+	await syncAllPages(pages, "Type your guess for:", "Wait for everybody to guess");
 
 	console.log("Reconnection test passed!");
+	for (const ctx of contexts) await ctx.close();
+});
+
+test("late-login player joins mid-game and participates", async ({ browser }) => {
+	const contexts = await Promise.all(
+		Array.from({ length: NUM_PLAYERS + 1 }, () => browser.newContext()),
+	);
+	const allPages = await Promise.all(contexts.map((ctx) => ctx.newPage()));
+	const pages = allPages.slice(0, NUM_PLAYERS);
+	const latePage = at(allPages, NUM_PLAYERS);
+
+	const gameCode = await loginAllPlayers(pages);
+	await at(pages, 0).click("text=Everybody in!");
+	await drawPhase(pages);
+
+	// Play round 1 with original 5 players
+	await playRound(pages, 0);
+	console.log("Round 1 complete, late player joining...");
+
+	// Late player joins during round 2 guess phase
+	await syncAllPages(pages, "Type your guess for:", "Wait for everybody to guess");
+	await latePage.goto(`/?game=${gameCode}`);
+	// The page shows the non-login rejoin UI since game is in progress
+	await latePage.click("text=Login as new player");
+	await latePage.fill("#username-input", "lateplayer");
+	await latePage.click("text=Login as new player");
+
+	// Late player should see the guess phase (not the login form)
+	await expect(
+		latePage.getByText("Type your guess for:").or(latePage.getByText("Wait for everybody to guess")),
+	).toBeVisible({ timeout: PHASE_TIMEOUT });
+	console.log("Late player joined successfully!");
+
+	// Now play round 2 with all 6 players (late player participates)
+	const allPlayingPages = [...pages, latePage];
+	await playRound(allPlayingPages, 1);
+
+	// Verify all 6 pages advanced past the round
+	await syncAllPages(allPlayingPages, "Type your guess for:", "Wait for everybody to guess", "THE END!");
+
+	console.log("Late-login test passed!");
 	for (const ctx of contexts) await ctx.close();
 });

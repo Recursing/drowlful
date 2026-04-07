@@ -7,17 +7,18 @@ import {
 	getPollDelay,
 } from "$lib/server/game";
 import { kv } from "$lib/server/kv";
-import type { StoredState } from "$lib/types";
+import { normalizeGameId, type StoredState } from "$lib/types";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ url }) => {
-	const gameId = url.searchParams.get("game");
+	const rawGameId = url.searchParams.get("game");
+	const gameId = rawGameId ? normalizeGameId(rawGameId) : null;
 	if (!gameId) {
 		return json({ error: "Missing game parameter" }, { status: 400 });
 	}
 
 	// Load state, check deadlines, save if changed
-	for (let attempt = 0; attempt < 5; attempt++) {
+	for (let attempt = 0; attempt < 10; attempt++) {
 		const entry = await kv.get<StoredState>(["game", gameId, "state"]);
 		const state = entry.value ?? createInitialState();
 

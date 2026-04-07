@@ -59,8 +59,9 @@
 				<label for="game-code-input">Game Code (empty = new game)</label>
 				<input
 					id="game-code-input"
-					bind:value={game.gameId}
-					class="input-block"
+					value={game.gameId}
+					oninput={(e) => game.setGameId(e.currentTarget.value)}
+					class="input-block game-code"
 					type="text"
 					placeholder="ABCD"
 					maxlength="4"
@@ -100,8 +101,9 @@
 				<label for="game-code-rejoin">Game Code</label>
 				<input
 					id="game-code-rejoin"
-					bind:value={game.gameId}
-					class="input-block"
+					value={game.gameId}
+					oninput={(e) => game.setGameId(e.currentTarget.value)}
+					class="input-block game-code"
 					type="text"
 					placeholder="ABCD"
 					maxlength="4"
@@ -174,5 +176,8 @@
 	.ready-btn {
 		max-width: 40%;
 		margin: 2em auto 0;
+	}
+	.game-code {
+		text-transform: uppercase;
 	}
 </style>

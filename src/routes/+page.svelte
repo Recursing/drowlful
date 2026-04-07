@@ -26,27 +26,22 @@
 		replaceState('/', {});
 	}
 
+	async function leaveGame() {
+		if (!(await modal.confirm('Leave the game?'))) return;
+		newGame();
+	}
+
 	onMount(() => {
 		// Read game ID from URL query param (e.g. ?game=XKCD from a shared link)
 		const urlGame = new URLSearchParams(window.location.search).get('game');
 		if (urlGame && !game.gameId) {
-			game.setGameId(urlGame.toUpperCase());
+			game.setGameId(urlGame);
 		}
 
-		// Resume polling if we have a saved session (page refresh or URL join)
-		if (game.gameId && game.myUsername) {
-			api.startPolling();
-		}
-	});
-
-	// Keep URL in sync with game ID
-	$effect(() => {
+		// Resume polling if we have a saved session, or start polling to discover
+		// game state for the rejoin UI (e.g. navigating to ?game=XKCD as a new player)
 		if (game.gameId) {
-			const url = new URL(window.location.href);
-			if (url.searchParams.get('game') !== game.gameId) {
-				url.searchParams.set('game', game.gameId);
-				replaceState(url.toString(), {});
-			}
+			api.startPolling();
 		}
 	});
 
@@ -97,9 +92,7 @@
 			<Draw />
 		{/if}
 	{:else if game.current.phase === 'guess' || game.current.phase === 'vote' || game.current.phase === 'lol vote'}
-		{#key game.current.current_prompt}
-			<Guess />
-		{/key}
+		<Guess />
 	{:else if game.current.phase === 'leaderboard' || game.current.phase === 'end'}
 		<Leaderboard />
 		{#if game.current.phase === 'end'}
@@ -112,6 +105,9 @@
 
 	{#if game.myUsername !== ''}
 		<Progressbar />
+		{#if game.current.phase !== 'login' && game.current.phase !== 'end'}
+			<button class="centered-flex leave-btn" onclick={leaveGame}>Leave Game</button>
+		{/if}
 	{/if}
 	</div>
 </div>
@@ -129,6 +125,7 @@
 	.leave-btn {
 		opacity: 0.5;
 		font-size: 0.8em;
+		margin-top: 2em;
 	}
 	.reconnecting {
 		background: #ffe08a;

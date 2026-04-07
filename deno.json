@@ -8,6 +8,8 @@
   },
   "tasks": {
     "biome:check": "deno run -A npm:@biomejs/biome check ./src/ ./tests/",
-    "biome:fix": "deno run -A npm:@biomejs/biome check --fix ./src/ ./tests/"
+    "biome:fix": "deno run -A npm:@biomejs/biome check --fix ./src/ ./tests/",
+    "test": "npx playwright test",
+    "build": "deno run -A node_modules/.bin/vite build"
   }
 }

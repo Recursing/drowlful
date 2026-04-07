@@ -1,7 +1,7 @@
 import type { Guess, Shape, State, StoredState, User, Vote } from "$lib/types";
 import { normalizePrompt } from "$lib/types";
 
-export const GAME_TTL = 86_400_000; // 24 hours
+export const GAME_TTL = 3_600_000; // 1 hour
 
 // --- Drawing compression (brotli via built-in CompressionStream) ---
 // "brotli" is supported by Deno but not yet in TS's CompressionFormat type
@@ -27,8 +27,11 @@ const IS_TEST = typeof Deno !== "undefined" && Deno.env.get("DROWLFUL_FAST_TIMER
 // This gives players a grace period: the client timer hits 0, but the server
 // still accepts actions for a few more seconds (important with global latency).
 // Client displays: LOL = 3s/player, Leaderboard = 2s/player (in Progressbar.svelte)
-const LOL_VOTE_MS_PER_PLAYER = IS_TEST ? 1200 : 5000;
-const LEADERBOARD_MS_PER_PLAYER = IS_TEST ? 800 : 3000;
+const LOL_VOTE_MS_PER_PLAYER = IS_TEST ? 200 : 5000;
+const LEADERBOARD_MS_PER_PLAYER = IS_TEST ? 200 : 3000;
+// Guess/vote phases auto-advance after this deadline if not all players have acted.
+// This prevents disconnected players from permanently stalling the game.
+const GUESS_VOTE_DEADLINE_MS = IS_TEST ? 5000 : 120_000; // 2 min in production
 
 // --- Game ID generation ---
 
@@ -115,10 +118,10 @@ export function relogin(state: StoredState, name: string): string | undefined {
 }
 
 export function lateLogin(state: StoredState, name: string, img_src: string): string | undefined {
-	// Only allow late login during leaderboard or end phases
-	// (joining during guess/vote/lol vote would break the player count for phase transitions)
-	if (state.phase !== "leaderboard" && state.phase !== "end") {
-		return `Cannot late login during ${state.phase} phase`;
+	// Late login is allowed during any active phase (spectator).
+	// activePlayers() excludes late-login users from phase transition thresholds.
+	if (state.phase === "login") {
+		return "Game hasn't started yet, use normal login";
 	}
 	if (state.users.some((u) => u.username === name)) {
 		return `Cannot late login as ${name}, username taken`;
@@ -169,6 +172,7 @@ export function submitDrawing(
 	if (state.drawings.length === state.users.length && firstDrawing) {
 		state.phase = "guess";
 		state.current_prompt = firstDrawing.prompt;
+		state.guess_ends_at = Date.now() + GUESS_VOTE_DEADLINE_MS;
 	}
 }
 
@@ -208,6 +212,8 @@ export function submitGuess(state: StoredState, guess: Guess): string | undefine
 		state.users.length - 2
 	) {
 		state.phase = "vote";
+		state.guess_ends_at = undefined;
+		state.vote_ends_at = Date.now() + GUESS_VOTE_DEADLINE_MS;
 	}
 }
 
@@ -264,6 +270,7 @@ export function submitVote(state: StoredState, vote: Vote): string | undefined {
 		state.users.length - 2
 	) {
 		state.phase = "lol vote";
+		state.vote_ends_at = undefined;
 		state.lol_vote_ends_at = Date.now() + state.users.length * LOL_VOTE_MS_PER_PLAYER;
 	}
 }
@@ -324,7 +331,16 @@ export function resetGame(state: StoredState): void {
 
 export function checkDeadlines(state: StoredState): void {
 	const now = Date.now();
-	if (state.phase === "lol vote" && state.lol_vote_ends_at && now >= state.lol_vote_ends_at) {
+	// Guess/vote deadlines: auto-advance if a disconnected player is stalling the game
+	if (state.phase === "guess" && state.guess_ends_at && now >= state.guess_ends_at) {
+		state.phase = "vote";
+		state.guess_ends_at = undefined;
+		state.vote_ends_at = Date.now() + GUESS_VOTE_DEADLINE_MS;
+	} else if (state.phase === "vote" && state.vote_ends_at && now >= state.vote_ends_at) {
+		state.phase = "lol vote";
+		state.vote_ends_at = undefined;
+		state.lol_vote_ends_at = now + state.users.length * LOL_VOTE_MS_PER_PLAYER;
+	} else if (state.phase === "lol vote" && state.lol_vote_ends_at && now >= state.lol_vote_ends_at) {
 		state.phase = "leaderboard";
 		state.leaderboard_ends_at = now + state.users.length * LEADERBOARD_MS_PER_PLAYER;
 		state.lol_vote_ends_at = undefined;
@@ -338,6 +354,7 @@ export function checkDeadlines(state: StoredState): void {
 		if (idx >= 0 && next) {
 			state.phase = "guess";
 			state.current_prompt = next.prompt;
+			state.guess_ends_at = Date.now() + GUESS_VOTE_DEADLINE_MS;
 		} else {
 			state.phase = "end";
 		}
@@ -351,30 +368,22 @@ export function getPollDelay(state: StoredState): number | null {
 	const now = Date.now();
 	switch (state.phase) {
 		case "login":
-			return IS_TEST ? 300 : 3000;
+			return IS_TEST ? 200 : 3000;
 		case "draw":
 			return state.drawings.length >= state.users.length - 1
-				? IS_TEST
-					? 200
-					: 1000
-				: IS_TEST
-					? 500
-					: 5000;
+				? IS_TEST ? 200 : 1000
+				: IS_TEST ? 400 : 5000;
 		case "guess":
 		case "vote":
-			return IS_TEST ? 300 : 2000;
+			return IS_TEST ? 200 : 2000;
 		case "lol vote":
 			return state.lol_vote_ends_at
 				? Math.max(IS_TEST ? 100 : 300, state.lol_vote_ends_at - now)
-				: IS_TEST
-					? 300
-					: 2000;
+				: IS_TEST ? 200 : 2000;
 		case "leaderboard":
 			return state.leaderboard_ends_at
 				? Math.max(IS_TEST ? 100 : 300, state.leaderboard_ends_at - now)
-				: IS_TEST
-					? 300
-					: 2000;
+				: IS_TEST ? 200 : 2000;
 		case "end":
 			return null;
 	}
@@ -391,14 +400,17 @@ export async function buildClientState(
 
 	if (state.phase === "end") {
 		// At end phase, load ALL drawing shapes for the full recap.
-		if (state.drawings.length > 10) {
-			throw new Error("Too many drawings for getMany (max 10)");
-		}
+		// kv.getMany supports max 10 keys, so batch if needed.
+		const allEntries: (Deno.KvEntryMaybe<Uint8Array>)[] = [];
 		const keys = state.drawings.map((d) => ["game", gameId, "drawing", d.username] as const);
-		const entries = await kv.getMany<Uint8Array[]>(keys);
+		for (let i = 0; i < keys.length; i += 10) {
+			const batch = keys.slice(i, i + 10);
+			const entries = await kv.getMany<Uint8Array[]>(batch);
+			allEntries.push(...entries);
+		}
 		drawings = await Promise.all(
 			state.drawings.map(async (d, i) => {
-				const compressed = entries.at(i)?.value;
+				const compressed = allEntries.at(i)?.value;
 				return { ...d, shapes: compressed ? await decompressShapes(compressed) : [] };
 			}),
 		);
@@ -444,7 +456,7 @@ export async function withState<T>(
 	gameId: string,
 	fn: (state: StoredState) => T,
 ): Promise<{ ok: true; result: T; state: StoredState } | { ok: false; error: string }> {
-	for (let attempt = 0; attempt < 5; attempt++) {
+	for (let attempt = 0; attempt < 10; attempt++) {
 		const entry = await kv.get<StoredState>(["game", gameId, "state"]);
 		const state = entry.value ?? createInitialState();
 		checkDeadlines(state);
@@ -477,7 +489,7 @@ export async function withStateAndDrawing(
 		return { ok: false, error: "Drawing is too complex! Try removing some strokes with Undo." };
 	}
 
-	for (let attempt = 0; attempt < 5; attempt++) {
+	for (let attempt = 0; attempt < 10; attempt++) {
 		const entry = await kv.get<StoredState>(["game", gameId, "state"]);
 		const state = entry.value ?? createInitialState();
 		checkDeadlines(state);

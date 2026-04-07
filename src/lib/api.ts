@@ -1,7 +1,13 @@
 import { game } from "$lib/game-state.svelte";
 import type { Shape } from "$lib/types";
 
-let pollTimer: ReturnType<typeof setTimeout> | null = null;
+let pollAbort: AbortController | null = null;
+let pollWakeup: (() => void) | null = null; // resolve the sleep early on stop/visibility
+let consecutiveErrors = 0;
+// Monotonic timestamp: tracks when state was last updated from a POST.
+// GETs that started before this timestamp are stale and their state is discarded,
+// preventing an in-flight GET from overwriting a fresher POST response.
+let lastPostStateAt = 0;
 
 type ApiResponse = {
 	state?: import("$lib/types").State;
@@ -22,57 +28,86 @@ type Action =
 	| "reset";
 
 async function post(action: Action, body: Record<string, unknown>): Promise<string | undefined> {
-	const res = await fetch(`/api/${action}`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ ...body, gameId: game.gameId }),
-	});
-	const data: ApiResponse = await res.json();
-	if (data.gameId) game.setGameId(data.gameId);
-	if (data.state) game.updateFromServer(data.state);
-	if (data.poll_after_ms != null) schedulePoll(data.poll_after_ms);
-	if (data.error) return data.error;
-	return undefined;
-}
-
-async function poll() {
-	if (!game.gameId) return;
-	try {
-		const res = await fetch(`/api/state?game=${game.gameId}`);
-		const data: ApiResponse = await res.json();
-		game.connectionOk = true;
-		if (data.state) game.updateFromServer(data.state);
-		if (data.poll_after_ms != null) {
-			schedulePoll(data.poll_after_ms);
+	const payload = JSON.stringify({ ...body, gameId: game.gameId });
+	for (let attempt = 0; attempt < 3; attempt++) {
+		try {
+			const res = await fetch(`/api/${action}`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: payload,
+			});
+			const data: ApiResponse = await res.json();
+			if (data.gameId) game.setGameId(data.gameId);
+			if (data.state) {
+				lastPostStateAt = Date.now();
+				game.updateFromServer(data.state);
+			}
+			if (data.error) return data.error;
+			return undefined;
+		} catch {
+			if (attempt === 2) return "Network error, please try again";
+			await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
 		}
-	} catch (e) {
-		console.error("Poll failed:", e);
-		game.connectionOk = false;
-		schedulePoll(5000);
 	}
 }
 
-function schedulePoll(delayMs: number) {
-	if (pollTimer) clearTimeout(pollTimer);
-	pollTimer = setTimeout(poll, delayMs);
+/** Poll loop: fetch → wait server-specified delay → repeat. No timers to manage. */
+async function pollLoop() {
+	if (pollAbort) return; // already running
+	pollAbort = new AbortController();
+	const { signal } = pollAbort;
+	let delay = 500;
+	try {
+		while (!signal.aborted && game.gameId) {
+			try {
+				const fetchStartedAt = Date.now();
+				const res = await fetch(`/api/state?game=${game.gameId}`, { signal });
+				if (!res.ok) throw new Error(`HTTP ${res.status}`);
+				const data: ApiResponse = await res.json();
+				const fetchDuration = Date.now() - fetchStartedAt;
+				consecutiveErrors = 0;
+				game.connectionOk = true;
+				if (data.state && fetchStartedAt >= lastPostStateAt) {
+					game.updateFromServer(data.state);
+				}
+				if (data.poll_after_ms == null) break;
+				// Adaptive: don't poll faster than the server can respond
+				delay = Math.max(data.poll_after_ms, Math.min(fetchDuration, 5000));
+			} catch (e) {
+				if (signal.aborted) break;
+				console.error("Poll failed:", e);
+				consecutiveErrors++;
+				game.connectionOk = consecutiveErrors < 3;
+				if (consecutiveErrors >= 3) {
+					delay = Math.min(delay * 2, 5000);
+				}
+			}
+			await new Promise<void>((r) => {
+				pollWakeup = r;
+				setTimeout(r, delay);
+			});
+			pollWakeup = null;
+		}
+	} finally {
+		pollAbort = null;
+	}
 }
 
 export function startPolling() {
-	poll();
+	consecutiveErrors = 0;
+	pollLoop();
 }
 
 export function stopPolling() {
-	if (pollTimer) {
-		clearTimeout(pollTimer);
-		pollTimer = null;
-	}
+	pollAbort?.abort();
+	pollWakeup?.();
 }
 
 // Re-poll immediately when tab becomes visible (recovers from backgrounded tabs)
 if (typeof document !== "undefined") {
 	document.addEventListener("visibilitychange", () => {
-		if (document.visibilityState === "visible" && game.gameId) {
-			poll();
+		if (document.visibilityState === "visible" && pollAbort && game.gameId) {
+			pollWakeup?.();
 		}
 	});
 }
