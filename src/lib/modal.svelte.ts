@@ -29,6 +29,7 @@ class ModalStore {
 	close(result?: boolean) {
 		const c = this.current;
 		this.current = { type: "closed" };
+		dialogEl?.close();
 		if (c.type === "alert") {
 			c.resolve();
 		} else if (c.type === "confirm") {

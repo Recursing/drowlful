@@ -25,8 +25,6 @@
 		<div
 			class="modal-body"
 			in:fly={{ y: -window.innerHeight / 2, duration: 300 }}
-			out:fly={{ y: -window.innerHeight / 2, duration: 200 }}
-			onoutroend={() => dialogRef.close()}
 		>
 			<button class="btn-close" onclick={() => modal.close()} aria-label="Close">X</button>
 			<p class="modal-text">{modal.current.message}</p>

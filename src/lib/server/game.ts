@@ -27,7 +27,7 @@ const IS_TEST = typeof Deno !== "undefined" && Deno.env.get("DROWLFUL_FAST_TIMER
 // This gives players a grace period: the client timer hits 0, but the server
 // still accepts actions for a few more seconds (important with global latency).
 // Client displays: LOL = 3s/player, Leaderboard = 2s/player (in Progressbar.svelte)
-const LOL_VOTE_MS_PER_PLAYER = IS_TEST ? 200 : 5000;
+const LOL_VOTE_MS_PER_PLAYER = IS_TEST ? 200 : 3000;
 const LEADERBOARD_MS_PER_PLAYER = IS_TEST ? 200 : 3000;
 // Guess/vote phases auto-advance after this deadline if not all players have acted.
 // This prevents disconnected players from permanently stalling the game.

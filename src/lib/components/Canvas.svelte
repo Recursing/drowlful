@@ -20,7 +20,12 @@
 			Math.max(0, slider_value - 30)
 	);
 
-	function onMouseup() {
+	function svgPoint(ev: PointerEvent): [number, number] {
+		const ctm = (ev.currentTarget as SVGSVGElement).getScreenCTM()!;
+		return [(ev.clientX - ctm.e) / ctm.a, (ev.clientY - ctm.f) / ctm.d];
+	}
+
+	function onPointerup() {
 		if (!is_drawing) return;
 		is_drawing = false;
 		switch (cur_shape.type) {
@@ -34,44 +39,47 @@
 		shapes = [...shapes, { ...cur_shape }];
 	}
 
-	function onMousedown(ev: MouseEvent) {
+	function onPointerdown(ev: PointerEvent) {
 		if (!editable) return;
+		(ev.currentTarget as Element).setPointerCapture(ev.pointerId);
 		is_drawing = true;
 		cur_shape.width = cur_width;
+		const [x, y] = svgPoint(ev);
 		switch (cur_shape.type) {
 			case 'polyline':
-				cur_shape = { ...cur_shape, points: [[ev.offsetX, ev.offsetY]] };
+				cur_shape = { ...cur_shape, points: [[x, y]] };
 				break;
 			case 'ellipse':
 				cur_shape = {
 					...cur_shape,
-					y1: ev.offsetY,
-					y2: ev.offsetY,
-					x1: ev.offsetX,
-					x2: ev.offsetX
+					y1: y,
+					y2: y,
+					x1: x,
+					x2: x
 				};
 				break;
 		}
 	}
 
-	function onMousemove(ev: MouseEvent) {
+	function onPointermove(ev: PointerEvent) {
 		if (!is_drawing) return;
+		const [x, y] = svgPoint(ev);
 		switch (cur_shape.type) {
 			case 'polyline':
 				if (ev.shiftKey) {
 					const first = cur_shape.points[0];
 					if (!first) break;
-					cur_shape = { ...cur_shape, points: [first, [ev.offsetX, ev.offsetY]] };
+					cur_shape = { ...cur_shape, points: [first, [x, y]] };
 				} else {
 					const last = cur_shape.points[cur_shape.points.length - 1];
 					if (!last) break;
-					const dx = ev.offsetX - last[0], dy = ev.offsetY - last[1];
+					const dx = x - last[0], dy = y - last[1];
 					if (dx * dx + dy * dy < 9) return; // skip if < 3px moved
-					cur_shape = { ...cur_shape, points: [...cur_shape.points, [ev.offsetX, ev.offsetY]] };
+					cur_shape = { ...cur_shape, points: [...cur_shape.points, [x, y]] };
 				}
 				break;
 			case 'ellipse':
-				cur_shape = { ...cur_shape, y2: ev.offsetY, x2: ev.offsetX };
+				cur_shape = { ...cur_shape, y2: y, x2: x };
 				break;
 		}
 	}
@@ -92,12 +100,13 @@
 <svelte:window onkeydown={onKeydown} onkeyup={onKeyup} />
 
 <svg
-	onmousemove={onMousemove}
-	onmouseup={onMouseup}
-	onmousedown={onMousedown}
-	onmouseleave={onMouseup}
-	width="800"
-	height="600"
+	onpointermove={onPointermove}
+	onpointerup={onPointerup}
+	onpointerdown={onPointerdown}
+	onpointerleave={onPointerup}
+	viewBox="0 0 800 600"
+	width="100%"
+	style="max-width: 800px;"
 	role="img"
 >
 	{#each is_drawing ? [...shapes, cur_shape] : shapes as shape}
@@ -172,6 +181,7 @@
 		margin: 0 auto;
 		border-style: solid;
 		display: block;
+		touch-action: none;
 	}
 	polyline,
 	ellipse {
@@ -194,6 +204,6 @@
 
 	input[type='range'] {
 		box-shadow: none;
-		width: 300px;
+		width: min(300px, 100%);
 	}
 </style>

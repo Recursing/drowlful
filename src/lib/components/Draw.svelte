@@ -26,7 +26,7 @@
 
 <style>
 	h1 {
-		font-size: 4em;
+		font-size: clamp(1.5em, 8vw, 4em);
 		color: red;
 		font-weight: 100;
 	}
