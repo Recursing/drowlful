@@ -1,13 +1,15 @@
 import { json } from "@sveltejs/kit";
 import {
 	buildClientState,
+	CORRUPT_RESET_ERROR,
 	checkDeadlines,
-	createInitialState,
 	GAME_TTL,
 	getPollDelay,
+	loadOrRecoverState,
+	validateState,
 } from "$lib/server/game";
 import { kv } from "$lib/server/kv";
-import { normalizeGameId, type StoredState } from "$lib/types";
+import { normalizeGameId } from "$lib/types";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ url }) => {
@@ -17,22 +19,33 @@ export const GET: RequestHandler = async ({ url }) => {
 		return json({ error: "Missing game parameter" }, { status: 400 });
 	}
 
-	// Load state, check deadlines, save if changed
 	for (let attempt = 0; attempt < 10; attempt++) {
-		const entry = await kv.get<StoredState>(["game", gameId, "state"]);
-		const state = entry.value ?? createInitialState();
-
+		const loaded = await loadOrRecoverState(kv, gameId);
+		if (loaded.kind === "corrupt_reset") {
+			return json(
+				{ error: CORRUPT_RESET_ERROR.message, kind: CORRUPT_RESET_ERROR.kind },
+				{ status: 410 },
+			);
+		}
+		const { entry, state } = loaded;
 		const phaseBefore = state.phase;
 		checkDeadlines(state);
 
-		// If deadlines changed the phase, save atomically
 		if (state.phase !== phaseBefore) {
+			const invariantError = validateState(state);
+			if (invariantError) {
+				// checkDeadlines must produce valid state — firing here is a bug.
+				console.error(
+					`[GET /state] checkDeadlines produced invalid state for game=${gameId}: ${invariantError}`,
+				);
+				return json({ error: `Internal state error: ${invariantError}` }, { status: 500 });
+			}
 			const res = await kv
 				.atomic()
 				.check(entry)
 				.set(["game", gameId, "state"], state, { expireIn: GAME_TTL })
 				.commit();
-			if (!res.ok) continue; // Conflict, retry
+			if (!res.ok) continue;
 		}
 
 		const clientState = await buildClientState(kv, gameId, state);

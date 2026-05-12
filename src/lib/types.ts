@@ -76,10 +76,37 @@ export interface StoredState {
 }
 
 export function normalizeGameId(id: string): string {
+	if (typeof id !== "string") {
+		throw new TypeError(`normalizeGameId: expected string, got ${typeof id}`);
+	}
 	return id.toUpperCase();
 }
 
+// Curated GWWC / EA themed codes.
+// Collisions are possible but unlikely in practice (party-game scale, 1h TTL).
+const GAME_ID_WORDS = [
+	"GWWC",
+	"AMF",
+	"QALY",
+	"NETS",
+	"HOPE",
+	"SHRP",
+	"HENS",
+	"GIVE",
+	"GOOD",
+	"DRAW",
+	"PLDG",
+];
+
+export function generateGameId(): string {
+	const word = GAME_ID_WORDS[Math.floor(Math.random() * GAME_ID_WORDS.length)];
+	return word ?? "GWWC";
+}
+
 export function normalizePrompt(text: string): string {
+	if (typeof text !== "string") {
+		throw new TypeError(`normalizePrompt: expected string, got ${typeof text}`);
+	}
 	return text
 		.trim()
 		.toUpperCase()

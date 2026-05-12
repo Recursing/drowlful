@@ -27,6 +27,23 @@ function saveToStorage(key: string, value: string) {
 	}
 }
 
+/** Mirror the game id into the URL's `?game=` param. `id === ""` removes it. */
+function syncGameIdToUrl(id: string) {
+	try {
+		const url = new URL(window.location.href);
+		const current = url.searchParams.get("game");
+		if (id && current !== id) {
+			url.searchParams.set("game", id);
+			replaceState(url.toString(), {});
+		} else if (!id && url.searchParams.has("game")) {
+			url.searchParams.delete("game");
+			replaceState(url.toString(), {});
+		}
+	} catch {
+		// SSR or router not ready
+	}
+}
+
 class GameState {
 	current = $state.raw<State>(emptyState);
 	myUsername = $state(loadFromStorage("drowlful_username"));
@@ -65,20 +82,7 @@ class GameState {
 		if (this.gameId === id) return;
 		this.gameId = id;
 		saveToStorage("drowlful_gameId", id);
-		try {
-			const url = new URL(window.location.href);
-			if (id) {
-				if (url.searchParams.get("game") !== id) {
-					url.searchParams.set("game", id);
-					replaceState(url.toString(), {});
-				}
-			} else if (url.searchParams.has("game")) {
-				url.searchParams.delete("game");
-				replaceState(url.toString(), {});
-			}
-		} catch {
-			// Router not ready during initial hydration
-		}
+		syncGameIdToUrl(id);
 	}
 
 	clearSession() {
@@ -90,6 +94,7 @@ class GameState {
 		this.previousLOLScores = new Map();
 		saveToStorage("drowlful_username", "");
 		saveToStorage("drowlful_gameId", "");
+		syncGameIdToUrl("");
 	}
 }
 

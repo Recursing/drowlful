@@ -19,17 +19,49 @@
 		'https://img.pokemondb.net/artwork/large/chikorita.jpg',
 		'https://img.pokemondb.net/artwork/large/pichu.jpg',
 		'https://img.pokemondb.net/artwork/large/togepi.jpg',
-		'https://img.pokemondb.net/artwork/large/mudkip.jpg'
+		'https://img.pokemondb.net/artwork/large/mudkip.jpg',
+		'https://img.pokemondb.net/artwork/large/snorlax.jpg',
+		'https://img.pokemondb.net/artwork/large/mew.jpg',
+		'https://img.pokemondb.net/artwork/large/mewtwo.jpg',
+		'https://img.pokemondb.net/artwork/large/gengar.jpg',
+		'https://img.pokemondb.net/artwork/large/dragonite.jpg',
+		'https://img.pokemondb.net/artwork/large/lucario.jpg',
+		'https://img.pokemondb.net/artwork/large/cubone.jpg',
+		'https://img.pokemondb.net/artwork/large/psyduck.jpg',
+		'https://img.pokemondb.net/artwork/large/vulpix.jpg',
+		'https://img.pokemondb.net/artwork/large/ditto.jpg',
+		'https://img.pokemondb.net/artwork/large/slowpoke.jpg',
+		'https://img.pokemondb.net/artwork/large/magikarp.jpg',
+		'https://img.pokemondb.net/artwork/large/gyarados.jpg',
+		'https://img.pokemondb.net/artwork/large/articuno.jpg',
+		'https://img.pokemondb.net/artwork/large/zapdos.jpg',
+		'https://img.pokemondb.net/artwork/large/moltres.jpg',
+		'https://img.pokemondb.net/artwork/large/lugia.jpg',
+		'https://img.pokemondb.net/artwork/large/treecko.jpg',
+		'https://img.pokemondb.net/artwork/large/torchic.jpg',
+		'https://img.pokemondb.net/artwork/large/cyndaquil.jpg',
+		'https://img.pokemondb.net/artwork/large/totodile.jpg',
+		'https://img.pokemondb.net/artwork/large/marill.jpg',
+		'https://img.pokemondb.net/artwork/large/wooper.jpg',
+		'https://img.pokemondb.net/artwork/large/snubbull.jpg',
+		'https://img.pokemondb.net/artwork/large/ralts.jpg'
 	];
 
-	function pickRandomImage() {
-		return default_images[Math.floor(Math.random() * default_images.length)] ?? '';
+	/** Prefer a Pokémon nobody else in this lobby has. Falls back to fully
+	 * random if all are taken (more players than Pokémon, which would need 37+). */
+	function pickRandomImage(): string {
+		const taken = new Set(game.current.users.map((u) => u.img_src));
+		const available = default_images.filter((img) => !taken.has(img));
+		const pool = available.length > 0 ? available : default_images;
+		return pool[Math.floor(Math.random() * pool.length)] ?? '';
 	}
 
-	let img_src = pickRandomImage();
+	let img_src = $state(pickRandomImage());
 
 	async function onLogin() {
-		if (!prompt || !username || !img_src) return;
+		if (!prompt || !username) return;
+		if (game.current.users.some((u) => u.img_src === img_src)) img_src = pickRandomImage();
+		if (!img_src) return;
 		const error = await api.login(username, img_src, normalizePrompt(prompt), game.gameId || undefined);
 		if (error) { modal.alert(error); return; }
 		api.startPolling();
@@ -43,7 +75,9 @@
 	}
 
 	async function doLateLogin() {
-		if (!username || !img_src || !game.gameId) return;
+		if (!username || !game.gameId) return;
+		if (game.current.users.some((u) => u.img_src === img_src)) img_src = pickRandomImage();
+		if (!img_src) return;
 		const error = await api.lateLogin(username, img_src, game.gameId);
 		if (error) { modal.alert(error); return; }
 		api.startPolling();
@@ -52,23 +86,13 @@
 	let login_type = $state<'login' | 'relogin' | 'late login'>('login');
 </script>
 
-{#if game.current.phase === 'login'}
+<!-- 'end' is treated like 'login': the server recycles a finished game on the
+     next login (see [action]/+server.ts), so the joining player gets the
+     fresh-lobby form instead of the rejoin-an-active-game choice. -->
+{#if game.current.phase === 'login' || game.current.phase === 'end'}
+	<h2 class="has-text-centered game-code-heading">Game code: {game.gameId}</h2>
 	<div class="row top-row">
-		<div class="col sm-4">
-			<div class="form-group">
-				<label for="game-code-input">Game Code (empty = new game)</label>
-				<input
-					id="game-code-input"
-					value={game.gameId}
-					oninput={(e) => game.setGameId(e.currentTarget.value)}
-					class="input-block game-code"
-					type="text"
-					placeholder="ABCD"
-					maxlength="4"
-				/>
-			</div>
-		</div>
-		<div class="col sm-4">
+		<div class="col sm-6">
 			<div class="form-group">
 				<label for="username-input">Name</label>
 				<input
@@ -95,22 +119,7 @@
 	</div>
 	<button onclick={onLogin} class="ready-btn btn-block" disabled={!username || !prompt}>Ready!</button>
 {:else if login_type === 'login'}
-	<div class="row">
-		<div class="col sm-4">
-			<div class="form-group">
-				<label for="game-code-rejoin">Game Code</label>
-				<input
-					id="game-code-rejoin"
-					value={game.gameId}
-					oninput={(e) => game.setGameId(e.currentTarget.value)}
-					class="input-block game-code"
-					type="text"
-					placeholder="ABCD"
-					maxlength="4"
-				/>
-			</div>
-		</div>
-	</div>
+	<h2 class="has-text-centered game-code-heading">Game code: {game.gameId}</h2>
 	<div class="centered-flex">
 		<button onclick={() => (login_type = 'late login')}> Login as new player </button>
 		<button onclick={() => (login_type = 'relogin')}> Login as existing player </button>
@@ -177,7 +186,7 @@
 		max-width: 40%;
 		margin: 2em auto 0;
 	}
-	.game-code {
-		text-transform: uppercase;
+	.game-code-heading {
+		margin-bottom: 1em;
 	}
 </style>

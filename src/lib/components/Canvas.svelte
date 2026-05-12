@@ -20,8 +20,13 @@
 			Math.max(0, slider_value - 30)
 	);
 
-	function svgPoint(ev: PointerEvent): [number, number] {
-		const ctm = (ev.currentTarget as SVGSVGElement).getScreenCTM()!;
+	/** Convert a pointer event into SVG coordinates.
+	 * `getScreenCTM()` can return null (mobile Safari during orientation change,
+	 * SVGs in hidden subtrees during hydration). When that happens we have no
+	 * usable point — return null and let callers skip this event. */
+	function svgPoint(ev: PointerEvent): [number, number] | null {
+		const ctm = (ev.currentTarget as SVGSVGElement).getScreenCTM();
+		if (!ctm || ctm.a === 0 || ctm.d === 0) return null;
 		return [(ev.clientX - ctm.e) / ctm.a, (ev.clientY - ctm.f) / ctm.d];
 	}
 
@@ -41,10 +46,12 @@
 
 	function onPointerdown(ev: PointerEvent) {
 		if (!editable) return;
+		const point = svgPoint(ev);
+		if (!point) return; // CTM not available; don't start a stroke we can't measure
 		(ev.currentTarget as Element).setPointerCapture(ev.pointerId);
 		is_drawing = true;
 		cur_shape.width = cur_width;
-		const [x, y] = svgPoint(ev);
+		const [x, y] = point;
 		switch (cur_shape.type) {
 			case 'polyline':
 				cur_shape = { ...cur_shape, points: [[x, y]] };
@@ -63,7 +70,9 @@
 
 	function onPointermove(ev: PointerEvent) {
 		if (!is_drawing) return;
-		const [x, y] = svgPoint(ev);
+		const point = svgPoint(ev);
+		if (!point) return; // skip; the in-progress stroke keeps its previous points
+		const [x, y] = point;
 		switch (cur_shape.type) {
 			case 'polyline':
 				if (ev.shiftKey) {

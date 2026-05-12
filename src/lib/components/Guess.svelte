@@ -78,17 +78,34 @@
 
 	let possiblePrompts = $derived.by(() => {
 		const guesses = game.current.guesses.filter(
-			(g) =>
-				g.real_prompt === game.current.current_prompt &&
-				g.guesser_username !== game.myUsername
+			(g) => g.real_prompt === game.current.current_prompt
 		);
-		const prompts = guesses.map((g) => g.guessed_prompt);
-		if (game.current.current_prompt !== myUser.proposed_prompt) {
-			prompts.push(game.current.current_prompt);
-		}
-		prompts.sort();
-		return prompts;
+		const prompts = new Set(guesses.map((g) => g.guessed_prompt));
+		prompts.add(game.current.current_prompt);
+		return [...prompts].sort();
 	});
+
+	/** Prompts this user authored (own guess or own proposed-prompt-as-real-prompt).
+	 * Backend rejects votes/LOLs on these; the UI marks them and disables voting. */
+	let myOptions = $derived.by(() => {
+		const set = new Set<string>();
+		for (const g of game.current.guesses) {
+			if (
+				g.guesser_username === game.myUsername &&
+				g.real_prompt === game.current.current_prompt
+			) {
+				set.add(g.guessed_prompt);
+			}
+		}
+		if (myUser.proposed_prompt === game.current.current_prompt) {
+			set.add(game.current.current_prompt);
+		}
+		return set;
+	});
+
+	function ownLabel(prompt: string): string {
+		return prompt === myUser.proposed_prompt ? 'your prompt' : 'your guess';
+	}
 
 	let usersWithoutGuess = $derived(
 		game.current.users.filter(
@@ -233,28 +250,35 @@
 		<div class="row">
 			<div class="col sm-10 center-text">
 				{#each possiblePrompts as prompt (prompt)}
-					<div
-						class={['row voterow', votedPrompt === prompt && 'row-selected']}
-						onclick={() => (votedPrompt = prompt)}
-						role="radio"
-						aria-checked={votedPrompt === prompt}
-						tabindex="0"
-						onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') votedPrompt = prompt; }}
-					>
-						<div class="col sm-1">
-							<input
-								id={prompt}
-								type="radio"
-								bind:group={votedPrompt}
-								value={prompt}
-							/>
+					{#if myOptions.has(prompt)}
+						<div class="row ownrow" aria-disabled="true">
+							<div class="col sm-1 own-badge">{ownLabel(prompt)}</div>
+							<div class="col sm-11 own-prompt">{prompt}</div>
 						</div>
-						<div class="col sm-11">
-							<label for={prompt}>
-								{prompt}
-							</label>
+					{:else}
+						<div
+							class={['row voterow', votedPrompt === prompt && 'row-selected']}
+							onclick={() => (votedPrompt = prompt)}
+							role="radio"
+							aria-checked={votedPrompt === prompt}
+							tabindex="0"
+							onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') votedPrompt = prompt; }}
+						>
+							<div class="col sm-1">
+								<input
+									id={prompt}
+									type="radio"
+									bind:group={votedPrompt}
+									value={prompt}
+								/>
+							</div>
+							<div class="col sm-11">
+								<label for={prompt}>
+									{prompt}
+								</label>
+							</div>
 						</div>
-					</div>
+					{/if}
 				{/each}
 			</div>
 			<div class="col sm-2 center-text">
@@ -265,19 +289,28 @@
 {:else if game.current.phase === 'lol vote'}
 	{#each possiblePrompts as prompt (prompt)}
 		<div class="row">
-			<div class="col sm-6 center-text">{prompt}</div>
 			<div class="col sm-6 center-text">
-				<button
-					onclick={async () => await doSendLOL(prompt)}
-					disabled={game.current.lol_votes.some(
-						(v) =>
-							v.voter_username === game.myUsername &&
-							v.real_prompt === game.current.current_prompt &&
-							v.voted_prompt === prompt
-					)}
-				>
-					LOL point
-				</button>
+				{prompt}
+				{#if myOptions.has(prompt)}
+					<span class="own-badge inline-badge">{ownLabel(prompt)}</span>
+				{/if}
+			</div>
+			<div class="col sm-6 center-text">
+				{#if myOptions.has(prompt)}
+					<span class="own-note">can't LOL your own</span>
+				{:else}
+					<button
+						onclick={async () => await doSendLOL(prompt)}
+						disabled={game.current.lol_votes.some(
+							(v) =>
+								v.voter_username === game.myUsername &&
+								v.real_prompt === game.current.current_prompt &&
+								v.voted_prompt === prompt
+						)}
+					>
+						LOL point
+					</button>
+				{/if}
 			</div>
 		</div>
 	{/each}
@@ -330,5 +363,38 @@
 	}
 	label {
 		overflow-wrap: break-word;
+	}
+
+	/* Own option (you wrote it / you proposed it) — distinct from disabled buttons.
+	 * No border/shadow like .voterow, dashed outline + tag instead. */
+	.ownrow {
+		padding-top: 0.3em;
+		border: 2px dashed #41403e;
+		background-color: transparent;
+		color: #41403e;
+		cursor: default;
+		opacity: 0.85;
+	}
+	.own-prompt {
+		font-style: italic;
+	}
+	.own-badge {
+		font-size: 0.7em;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: #c0392b;
+		font-weight: 600;
+		align-self: center;
+	}
+	.inline-badge {
+		margin-left: 0.5em;
+		padding: 0.1em 0.4em;
+		border: 1px dashed #c0392b;
+		border-radius: 4px;
+	}
+	.own-note {
+		font-size: 0.85em;
+		font-style: italic;
+		color: #888;
 	}
 </style>

@@ -4,13 +4,14 @@
     "jsr:@std/assert@*": "1.0.19",
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "npm:@playwright/test@^1.59.1": "1.59.1",
-    "npm:@sveltejs/adapter-auto@^7.0.1": "7.0.1_@sveltejs+kit@2.56.1__@sveltejs+vite-plugin-svelte@7.0.0___svelte@5.55.1___vite@8.0.5____@emnapi+core@1.9.2____@emnapi+runtime@1.9.2___@emnapi+core@1.9.2___@emnapi+runtime@1.9.2__svelte@5.55.1__typescript@6.0.2__vite@8.0.5___@emnapi+core@1.9.2___@emnapi+runtime@1.9.2__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2_@emnapi+core@1.9.2_@emnapi+runtime@1.9.2_@sveltejs+vite-plugin-svelte@7.0.0__svelte@5.55.1__vite@8.0.5___@emnapi+core@1.9.2___@emnapi+runtime@1.9.2__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2_vite@8.0.5__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2",
-    "npm:@sveltejs/kit@^2.56.1": "2.56.1_@sveltejs+vite-plugin-svelte@7.0.0__svelte@5.55.1__vite@8.0.5___@emnapi+core@1.9.2___@emnapi+runtime@1.9.2__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2_svelte@5.55.1_typescript@6.0.2_vite@8.0.5__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2_@emnapi+core@1.9.2_@emnapi+runtime@1.9.2",
-    "npm:@sveltejs/vite-plugin-svelte@7": "7.0.0_svelte@5.55.1_vite@8.0.5__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2_@emnapi+core@1.9.2_@emnapi+runtime@1.9.2",
+    "npm:@sveltejs/adapter-auto@^7.0.1": "7.0.1_@sveltejs+kit@2.56.1__@sveltejs+vite-plugin-svelte@7.0.0___svelte@5.55.1___vite@8.0.5____@types+node@25.7.0___@types+node@25.7.0__svelte@5.55.1__typescript@6.0.2__vite@8.0.5___@types+node@25.7.0__@types+node@25.7.0_@types+node@25.7.0",
+    "npm:@sveltejs/kit@^2.56.1": "2.56.1_@sveltejs+vite-plugin-svelte@7.0.0__svelte@5.55.1__vite@8.0.5___@types+node@25.7.0__@types+node@25.7.0_svelte@5.55.1_typescript@6.0.2_vite@8.0.5__@types+node@25.7.0_@types+node@25.7.0",
+    "npm:@sveltejs/vite-plugin-svelte@7": "7.0.0_svelte@5.55.1_vite@8.0.5__@types+node@25.7.0_@types+node@25.7.0",
+    "npm:@types/node@^25.7.0": "25.7.0",
     "npm:svelte-check@^4.4.6": "4.4.6_svelte@5.55.1_typescript@6.0.2",
     "npm:svelte@^5.55.1": "5.55.1",
     "npm:typescript@^6.0.2": "6.0.2",
-    "npm:vite@^8.0.5": "8.0.5_@emnapi+core@1.9.2_@emnapi+runtime@1.9.2"
+    "npm:vite@^8.0.5": "8.0.5_@types+node@25.7.0"
   },
   "jsr": {
     "@std/assert@1.0.19": {
@@ -180,13 +181,13 @@
         "acorn"
       ]
     },
-    "@sveltejs/adapter-auto@7.0.1_@sveltejs+kit@2.56.1__@sveltejs+vite-plugin-svelte@7.0.0___svelte@5.55.1___vite@8.0.5____@emnapi+core@1.9.2____@emnapi+runtime@1.9.2___@emnapi+core@1.9.2___@emnapi+runtime@1.9.2__svelte@5.55.1__typescript@6.0.2__vite@8.0.5___@emnapi+core@1.9.2___@emnapi+runtime@1.9.2__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2_@emnapi+core@1.9.2_@emnapi+runtime@1.9.2_@sveltejs+vite-plugin-svelte@7.0.0__svelte@5.55.1__vite@8.0.5___@emnapi+core@1.9.2___@emnapi+runtime@1.9.2__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2_vite@8.0.5__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2": {
+    "@sveltejs/adapter-auto@7.0.1_@sveltejs+kit@2.56.1__@sveltejs+vite-plugin-svelte@7.0.0___svelte@5.55.1___vite@8.0.5____@types+node@25.7.0___@types+node@25.7.0__svelte@5.55.1__typescript@6.0.2__vite@8.0.5___@types+node@25.7.0__@types+node@25.7.0_@types+node@25.7.0": {
       "integrity": "sha512-dvuPm1E7M9NI/+canIQ6KKQDU2AkEefEZ2Dp7cY6uKoPq9Z/PhOXABe526UdW2mN986gjVkuSLkOYIBnS/M2LQ==",
       "dependencies": [
         "@sveltejs/kit"
       ]
     },
-    "@sveltejs/kit@2.56.1_@sveltejs+vite-plugin-svelte@7.0.0__svelte@5.55.1__vite@8.0.5___@emnapi+core@1.9.2___@emnapi+runtime@1.9.2__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2_svelte@5.55.1_typescript@6.0.2_vite@8.0.5__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2_@emnapi+core@1.9.2_@emnapi+runtime@1.9.2": {
+    "@sveltejs/kit@2.56.1_@sveltejs+vite-plugin-svelte@7.0.0__svelte@5.55.1__vite@8.0.5___@types+node@25.7.0__@types+node@25.7.0_svelte@5.55.1_typescript@6.0.2_vite@8.0.5__@types+node@25.7.0_@types+node@25.7.0": {
       "integrity": "sha512-9hDOl3yUh8UXWt+mN29dbcdrW0vNwPvMqi01y2Mw+ceErNIISh8MeEY7fXT2Dx1CjC/kfsVqrbxw7DifYr4hsg==",
       "dependencies": [
         "@standard-schema/spec",
@@ -211,7 +212,7 @@
       ],
       "bin": true
     },
-    "@sveltejs/vite-plugin-svelte@7.0.0_svelte@5.55.1_vite@8.0.5__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2_@emnapi+core@1.9.2_@emnapi+runtime@1.9.2": {
+    "@sveltejs/vite-plugin-svelte@7.0.0_svelte@5.55.1_vite@8.0.5__@types+node@25.7.0_@types+node@25.7.0": {
       "integrity": "sha512-ILXmxC7HAsnkK2eslgPetrqqW1BKSL7LktsFgqzNj83MaivMGZzluWq32m25j2mDOjmSKX7GGWahePhuEs7P/g==",
       "dependencies": [
         "deepmerge",
@@ -233,6 +234,12 @@
     },
     "@types/estree@1.0.8": {
       "integrity": "sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w=="
+    },
+    "@types/node@25.7.0": {
+      "integrity": "sha512-z+pdZyxE+RTQE9AcboAZCb4otwcrvgHD+GlBpPgn0emDVt0ohrTMhAwlr2Wd9nZ+nihhYFxO2pThz3C5qSu2Eg==",
+      "dependencies": [
+        "undici-types"
+      ]
     },
     "@types/trusted-types@2.0.7": {
       "integrity": "sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw=="
@@ -532,9 +539,13 @@
       "integrity": "sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ==",
       "bin": true
     },
-    "vite@8.0.5_@emnapi+core@1.9.2_@emnapi+runtime@1.9.2": {
+    "undici-types@7.21.0": {
+      "integrity": "sha512-w9IMgQrz4O0YN1LtB7K5P63vhlIOvC7opSmouCJ+ZywlPAlO9gIkJ+otk6LvGpAs2wg4econaCz3TvQ9xPoyuQ=="
+    },
+    "vite@8.0.5_@types+node@25.7.0": {
       "integrity": "sha512-nmu43Qvq9UopTRfMx2jOYW5l16pb3iDC1JH6yMuPkpVbzK0k+L7dfsEDH4jRgYFmsg0sTAqkojoZgzLMlwHsCQ==",
       "dependencies": [
+        "@types/node",
         "lightningcss",
         "picomatch",
         "postcss",
@@ -544,9 +555,12 @@
       "optionalDependencies": [
         "fsevents@2.3.3"
       ],
+      "optionalPeers": [
+        "@types/node"
+      ],
       "bin": true
     },
-    "vitefu@1.1.3_vite@8.0.5__@emnapi+core@1.9.2__@emnapi+runtime@1.9.2_@emnapi+core@1.9.2_@emnapi+runtime@1.9.2": {
+    "vitefu@1.1.3_vite@8.0.5__@types+node@25.7.0_@types+node@25.7.0": {
       "integrity": "sha512-ub4okH7Z5KLjb6hDyjqrGXqWtWvoYdU3IGm/NorpgHncKoLTCfRIbvlhBm7r0YstIaQRYlp4yEbFqDcKSzXSSg==",
       "dependencies": [
         "vite"
@@ -566,6 +580,7 @@
         "npm:@sveltejs/adapter-auto@^7.0.1",
         "npm:@sveltejs/kit@^2.56.1",
         "npm:@sveltejs/vite-plugin-svelte@7",
+        "npm:@types/node@^25.7.0",
         "npm:svelte-check@^4.4.6",
         "npm:svelte@^5.55.1",
         "npm:typescript@^6.0.2",

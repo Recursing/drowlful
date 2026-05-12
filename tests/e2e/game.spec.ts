@@ -24,29 +24,36 @@ const DEADLINE_TIMEOUT = 5_000;
  * This ensures every browser has polled and received the current phase.
  */
 async function syncAllPages(pages: Page[], ...texts: string[]) {
+	const [first, ...rest] = texts;
+	if (!first) throw new Error("syncAllPages requires at least one text");
 	const locator = (p: Page) => {
-		let loc = p.getByText(texts[0]!);
-		for (let i = 1; i < texts.length; i++) {
-			loc = loc.or(p.getByText(texts[i]!));
-		}
+		let loc = p.getByText(first);
+		for (const t of rest) loc = loc.or(p.getByText(t));
 		return loc;
 	};
-	await Promise.all(pages.map((p) => locator(p).waitFor({ state: "visible", timeout: PHASE_TIMEOUT })));
+	await Promise.all(
+		pages.map((p) => locator(p).waitFor({ state: "visible", timeout: PHASE_TIMEOUT })),
+	);
 }
 
 /** Login all players, return the game code */
-async function loginAllPlayers(pages: Page[]): Promise<string> {
+async function loginAllPlayers(
+	pages: Page[],
+	prompts: readonly string[] = PROMPTS,
+): Promise<string> {
 	const p0 = at(pages, 0);
 	await p0.goto("/");
-	await p0.fill("#username-input", "player0");
-	await p0.fill('[placeholder="e.g. A cat riding a bicycle"]', at(PROMPTS, 0));
-	await p0.click("text=Ready!");
+	await p0.click("text=Start a new game");
 
-	await expect(p0.getByText(/Game code:/)).toBeVisible();
-	const gameCodeText = await p0.getByText(/Game code:/).textContent();
-	if (!gameCodeText) throw new Error("Game code text not found");
-	const gameCode = gameCodeText.replace("Game code:", "").trim();
+	await expect(p0).toHaveURL(/\?game=[A-Z]{2,5}/);
+	const url = new URL(p0.url());
+	const gameCode = url.searchParams.get("game");
+	if (!gameCode) throw new Error("Game code not found in URL");
 	console.log(`Game code: ${gameCode}`);
+
+	await p0.fill("#username-input", "player0");
+	await p0.fill('[placeholder="e.g. A cat riding a bicycle"]', at(prompts, 0));
+	await p0.click("text=Ready!");
 
 	// Players 1-4 join in parallel
 	await Promise.all(
@@ -56,7 +63,7 @@ async function loginAllPlayers(pages: Page[]): Promise<string> {
 			return (async () => {
 				await page.goto(`/?game=${gameCode}`);
 				await page.fill("#username-input", `player${i}`);
-				await page.fill('[placeholder="e.g. A cat riding a bicycle"]', at(PROMPTS, i));
+				await page.fill('[placeholder="e.g. A cat riding a bicycle"]', at(prompts, i));
 				await page.click("text=Ready!");
 			})();
 		}),
@@ -92,7 +99,7 @@ async function drawPhase(pages: Page[]) {
 /** Dismiss any open modal dialog (error alerts from previous actions) */
 async function dismissModal(page: Page) {
 	const dialog = page.locator("dialog[open]");
-	if (await dialog.count() > 0) {
+	if ((await dialog.count()) > 0) {
 		await page.locator('dialog button:has-text("OK")').click();
 	}
 }
@@ -106,14 +113,21 @@ async function fillAndSubmitGuess(page: Page, guess: string) {
 	await page.evaluate((text) => {
 		const input = document.querySelector('[placeholder="Your guess"]') as HTMLInputElement;
 		if (!input) throw new Error("Guess input not found");
-		const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+		const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+		if (!setter) throw new Error("HTMLInputElement.value setter not found");
 		setter.call(input, text);
 		input.dispatchEvent(new Event("input", { bubbles: true }));
 	}, guess);
 	await page.locator('button:has-text("Send!")').click();
 }
 
-async function playRound(pages: Page[], round: number) {
+const DEFAULT_GUESS = (i: number, round: number) => `Guess ${i} r${round}`;
+
+async function playRound(
+	pages: Page[],
+	round: number,
+	guessFor: (playerIdx: number, round: number) => string = DEFAULT_GUESS,
+) {
 	console.log(`--- Round ${round + 1} of ${NUM_PLAYERS} ---`);
 
 	// GUESS: sync all pages, then act on guessers
@@ -121,7 +135,7 @@ async function playRound(pages: Page[], round: number) {
 	for (const [i, page] of pages.entries()) {
 		const input = page.locator('[placeholder="Your guess"]');
 		if (await input.isVisible()) {
-			await fillAndSubmitGuess(page, `Guess ${i} r${round}`);
+			await fillAndSubmitGuess(page, guessFor(i, round));
 		}
 	}
 
@@ -157,8 +171,15 @@ async function playRound(pages: Page[], round: number) {
 					.or(p.getByText("THE END!"))
 					.waitFor({ timeout: DEADLINE_TIMEOUT });
 			} catch (e) {
-				const h1 = await p.locator("h1").first().textContent().catch(() => "??");
-				const banner = await p.locator(".reconnecting").isVisible().catch(() => false);
+				const h1 = await p
+					.locator("h1")
+					.first()
+					.textContent()
+					.catch(() => "??");
+				const banner = await p
+					.locator(".reconnecting")
+					.isVisible()
+					.catch(() => false);
 				console.error(`Player ${i} stuck: h1="${h1}", reconnecting=${banner}`);
 				throw e;
 			}
@@ -179,7 +200,12 @@ test("full game with 5 players", async ({ browser }) => {
 	for (let round = 0; round < NUM_PLAYERS; round++) {
 		await playRound(pages, round);
 		for (const page of pages) {
-			if (await page.getByText("THE END!").isVisible().catch(() => false)) {
+			if (
+				await page
+					.getByText("THE END!")
+					.isVisible()
+					.catch(() => false)
+			) {
 				console.log("  Game ended!");
 				round = NUM_PLAYERS;
 				break;
@@ -269,7 +295,9 @@ test("late-login player joins mid-game and participates", async ({ browser }) =>
 
 	// Late player should see the guess phase (not the login form)
 	await expect(
-		latePage.getByText("Type your guess for:").or(latePage.getByText("Wait for everybody to guess")),
+		latePage
+			.getByText("Type your guess for:")
+			.or(latePage.getByText("Wait for everybody to guess")),
 	).toBeVisible({ timeout: PHASE_TIMEOUT });
 	console.log("Late player joined successfully!");
 
@@ -278,8 +306,137 @@ test("late-login player joins mid-game and participates", async ({ browser }) =>
 	await playRound(allPlayingPages, 1);
 
 	// Verify all 6 pages advanced past the round
-	await syncAllPages(allPlayingPages, "Type your guess for:", "Wait for everybody to guess", "THE END!");
+	await syncAllPages(
+		allPlayingPages,
+		"Type your guess for:",
+		"Wait for everybody to guess",
+		"THE END!",
+	);
 
 	console.log("Late-login test passed!");
+	for (const ctx of contexts) await ctx.close();
+});
+
+test("stress: refresh a different player between every round", async ({ browser }) => {
+	const contexts = await Promise.all(
+		Array.from({ length: NUM_PLAYERS }, () => browser.newContext()),
+	);
+	const pages = await Promise.all(contexts.map((ctx) => ctx.newPage()));
+
+	await loginAllPlayers(pages);
+	await at(pages, 0).click("text=Everybody in!");
+	await drawPhase(pages);
+
+	for (let round = 0; round < NUM_PLAYERS; round++) {
+		// Mid-game refresh: pick a player who isn't player 0 (to keep the host alive)
+		const victimIdx = 1 + (round % (NUM_PLAYERS - 1));
+		const victim = at(pages, victimIdx);
+		console.log(`Round ${round + 1}: refreshing player${victimIdx}`);
+		await victim.reload();
+		await expect(
+			victim
+				.getByText("Type your guess for:")
+				.or(victim.getByText("Wait for everybody to guess"))
+				.or(victim.getByText("Pick one!"))
+				.or(victim.getByText("Wait for everybody to pick"))
+				.or(victim.getByText("Give LOLs!"))
+				.or(victim.getByText("LOL points!")),
+		).toBeVisible({ timeout: PHASE_TIMEOUT });
+
+		await playRound(pages, round);
+
+		if (
+			await at(pages, 0)
+				.getByText("THE END!")
+				.isVisible()
+				.catch(() => false)
+		) {
+			console.log("  Game ended early");
+			break;
+		}
+	}
+
+	for (const page of pages) {
+		await expect(page.getByText("THE END!")).toBeVisible({ timeout: DEADLINE_TIMEOUT });
+	}
+	console.log("Multi-round refresh stress test passed!");
+	for (const ctx of contexts) await ctx.close();
+});
+
+test("stress: three consecutive full games on shared contexts", async ({ browser }) => {
+	// Catches state-pollution / cleanup bugs between games on the same browser session.
+	const contexts = await Promise.all(
+		Array.from({ length: NUM_PLAYERS }, () => browser.newContext()),
+	);
+	const pages = await Promise.all(contexts.map((ctx) => ctx.newPage()));
+
+	for (let game = 0; game < 3; game++) {
+		console.log(`=== Game ${game + 1}/3 ===`);
+		// Reset all pages to the landing page (clears localStorage URL state)
+		await Promise.all(pages.map((p) => p.goto("/")));
+
+		await loginAllPlayers(pages);
+		await at(pages, 0).click("text=Everybody in!");
+		await drawPhase(pages);
+
+		for (let round = 0; round < NUM_PLAYERS; round++) {
+			await playRound(pages, round);
+			if (
+				await at(pages, 0)
+					.getByText("THE END!")
+					.isVisible()
+					.catch(() => false)
+			) {
+				break;
+			}
+		}
+		for (const p of pages) {
+			await expect(p.getByText("THE END!")).toBeVisible({ timeout: DEADLINE_TIMEOUT });
+		}
+	}
+
+	console.log("Three-game stress test passed!");
+	for (const ctx of contexts) await ctx.close();
+});
+
+test("stress: full game with very long (~500 char) prompts and guesses", async ({ browser }) => {
+	// Pads a seed to `len` chars with descriptive filler. Each seed yields a
+	// unique result so prompt-uniqueness invariants still hold.
+	function pad(seed: string, len: number): string {
+		const filler =
+			" A DETAILED VIBRANT SCENE WITH RICH COLORS AND DYNAMIC COMPOSITION SHOWING SOMETHING UNEXPECTED AND DELIGHTFUL.";
+		let out = seed;
+		while (out.length < len) out += filler;
+		return out.slice(0, len);
+	}
+	const LONG_PROMPTS = PROMPTS.map((p) => pad(p, 500));
+	const longGuess = (i: number, round: number) => pad(`Guess ${i} r${round}`, 500);
+
+	const contexts = await Promise.all(
+		Array.from({ length: NUM_PLAYERS }, () => browser.newContext()),
+	);
+	const pages = await Promise.all(contexts.map((ctx) => ctx.newPage()));
+
+	await loginAllPlayers(pages, LONG_PROMPTS);
+	await at(pages, 0).click("text=Everybody in!");
+	await drawPhase(pages);
+
+	for (let round = 0; round < NUM_PLAYERS; round++) {
+		await playRound(pages, round, longGuess);
+		if (
+			await at(pages, 0)
+				.getByText("THE END!")
+				.isVisible()
+				.catch(() => false)
+		) {
+			console.log("  Game ended");
+			break;
+		}
+	}
+
+	for (const page of pages) {
+		await expect(page.getByText("THE END!")).toBeVisible({ timeout: DEADLINE_TIMEOUT });
+	}
+	console.log("Long-prompts stress test passed!");
 	for (const ctx of contexts) await ctx.close();
 });
